@@ -11,7 +11,7 @@ export default function HeroSlide({ image }: HeroSlideProps) {
         src={image}
         alt=""
         fill
-        className="object-cover"
+        className="object-fit"
         priority
       />
     </div>

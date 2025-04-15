@@ -1,6 +1,6 @@
 
 import HeroBanner from "@/components/hero/heroBanner";
-import CategorySidebar from "@/components/categorySideBar";
+import CategorySidebar from "@/components/categorysidebar/categorySideBar";
 import ProductGrid from "@/components/productGrid";
 import TrendingProducts from "@/components/trendingProducts";
 
