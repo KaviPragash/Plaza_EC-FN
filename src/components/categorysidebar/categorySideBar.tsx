@@ -1,4 +1,3 @@
-// components/category/CategorySidebar.tsx
 "use client";
 
 import { useState, useRef } from "react";
@@ -38,10 +37,9 @@ export default function CategorySidebar() {
     <div className="relative flex" ref={containerRef} onMouseLeave={handleMouseLeave}>
       {/* Desktop View */}
       <aside
-        className="hidden md:block bg-white p-4 md:p-6 rounded-xl shadow-md w-64 border border-gray-200 min-h-full"
-        style={{ height: "auto" }}
+        className="hidden md:block w-64 bg-white p-4 md:p-6 rounded-xl shadow-md border border-gray-200"
       >
-        <h2 className="text-xl md:text-2xl font-semibold mb-4 text-gray-800">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex justify-center">
           Categories
         </h2>
         <ul className="space-y-2">
@@ -49,8 +47,10 @@ export default function CategorySidebar() {
             <li
               key={cat.type}
               onMouseEnter={() => setHoveredIndex(index)}
-              className={`w-full block border-r-4 px-4 py-2 rounded-r-lg transition-all duration-200 ${
-                hoveredIndex === index ? "border-blue-500 bg-blue-50" : "border-transparent"
+              className={`block border-l-4 px-4 py-3 rounded-lg transition duration-200 ${
+                hoveredIndex === index
+                  ? "border-blue-500 bg-blue-50"
+                  : "border-transparent hover:bg-gray-100"
               }`}
             >
               <CategoryItem type={cat.type} isHovered={hoveredIndex === index} />
@@ -62,8 +62,7 @@ export default function CategorySidebar() {
       {/* Subcategory Menu */}
       {hoveredIndex !== null && (
         <div
-          className="absolute left-[15rem] top-0 z-10"
-          style={{ height: "100%" }}
+          className="absolute left-[16rem] top-0 z-10 h-full"
           onMouseEnter={() => setHoveredIndex(hoveredIndex)}
           onMouseLeave={handleMouseLeave}
         >
