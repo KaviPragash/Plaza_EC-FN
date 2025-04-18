@@ -1,7 +1,7 @@
 import HeroBanner from "@/components/hero/heroBanner";
 import CategorySidebar from "@/components/categorysidebar/categorySideBar";
 import ProductGrid from "@/components/product/productGrid";
-import TrendingProducts from "@/components/trendingProducts";
+import TrendingProducts from "@/components/trending/trendingProducts";
 
 export default function HomePage() {
   return (
@@ -9,27 +9,27 @@ export default function HomePage() {
       <HeroBanner />
 
       {/* Sidebar + Product Grid Section */}
-      <div className="px-4 md:px-15 py-6">
-        <div className="flex flex-col md:flex-row gap-3">
-          {/* Sidebar */}
-          <div className="md:w-1/4 flex-shrink-0">
-            <div className="h-full">
+      <div className="px-4 md:px-6 py-6">
+        <div className="max-w-[1440px] mx-auto">
+          <div className="flex flex-col md:flex-row md:gap-[10px]">
+            {/* Sidebar */}
+            <div className="md:w-[250px] flex-shrink-0">
               <CategorySidebar />
             </div>
-          </div>
 
-          {/* Product Grid */}
-          <div className="md:w-3/4 flex-grow">
-            <section>
+            {/* Product Grid */}
+            <div className="flex-grow">
               <ProductGrid />
-            </section>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Trending */}
       <div className="px-4 md:px-8 py-6">
-        <TrendingProducts />
+        <div className="max-w-[1440px] mx-auto">
+          <TrendingProducts />
+        </div>
       </div>
     </div>
   );

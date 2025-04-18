@@ -25,7 +25,7 @@ export default function ProductGrid() {
         description: "High-quality sound with noise cancellation.",
         size: "Standard",
         price: 12999,
-        image: "/images/headphones.jpg",
+        image: "/assets/images/headphones.webp",
         stockStatus: "In Stock",
         stockQuantity: 12,
       },
@@ -35,7 +35,7 @@ export default function ProductGrid() {
         description: "Track fitness and receive notifications.",
         size: "Universal",
         price: 8999,
-        image: "/images/smartwatch.jpg",
+        image: "/assets/images/smartwatch.jpg",
         stockStatus: "In Stock",
         stockQuantity: 5,
       },
@@ -45,7 +45,7 @@ export default function ProductGrid() {
         description: "Portable speaker with rich bass.",
         size: "Medium",
         price: 5999,
-        image: "/images/speaker.jpg",
+        image: "/assets/images/speaker.jpg",
         stockStatus: "In Stock",
         stockQuantity: 8,
       },
@@ -55,7 +55,7 @@ export default function ProductGrid() {
         description: "Precision mouse with RGB lighting.",
         size: "Compact",
         price: 3499,
-        image: "/images/mouse.jpg",
+        image: "/assets/images/mouse.jpg",
         stockStatus: "In Stock",
         stockQuantity: 4,
       },
@@ -64,12 +64,12 @@ export default function ProductGrid() {
   }, []);
 
   return (
-    <section className="px-4 md:px-6 pt-0 pb-6">
-      <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-6">
-        <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-6 text-center">
+    <section className="px-2 md:px-3 pt-0 pb-4">
+      <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-4">
+        <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-7 text-center">
           Our Products
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}

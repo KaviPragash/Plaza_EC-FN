@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import QuantitySelector from "./QuantitySelector";
+
 type Product = {
   id: string;
   name: string;
@@ -18,8 +21,22 @@ export default function ProductModal({
   product: Product;
   onClose: () => void;
 }) {
+  const [quantity, setQuantity] = useState(1);
+
+  const increase = () => {
+    if (quantity < product.stockQuantity) {
+      setQuantity((prev) => prev + 1);
+    }
+  };
+
+  const decrease = () => {
+    if (quantity > 1) {
+      setQuantity((prev) => prev - 1);
+    }
+  };
+
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-30 flex items-center justify-center">
+    <div className="fixed inset-0 z-50 bg-white/30 backdrop-blur-sm flex items-center justify-center">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
         <button
           onClick={onClose}
@@ -31,7 +48,7 @@ export default function ProductModal({
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-48 object-cover rounded mb-4"
+          className="w-full h-48 object-contain rounded mb-4"
         />
 
         <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
@@ -42,17 +59,15 @@ export default function ProductModal({
           LKR {product.price.toFixed(2)}
         </p>
 
-        <div className="flex gap-2">
-          <input
-            type="number"
-            min="1"
-            defaultValue={1}
-            className="w-20 px-2 py-1 border border-gray-300 rounded"
-          />
-          <button className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded">
-            Complete Order
-          </button>
-        </div>
+        <QuantitySelector
+          quantity={quantity}
+          increase={increase}
+          decrease={decrease}
+        />
+
+        <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">
+          Complete Order
+        </button>
       </div>
     </div>
   );
