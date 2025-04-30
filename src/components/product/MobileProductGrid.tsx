@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import ProductCard from "./ProductCard";
-import MobileProductGrid from "./MobileProductGrid";
+import { useState, useEffect } from "react";
+import MobileProductCard from "./MobileProductCard";
 
 type Product = {
   id: string;
@@ -15,8 +14,9 @@ type Product = {
   stockQuantity: number;
 };
 
-export default function ProductGrid() {
+export default function MobileProductGrid() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     const dummyData: Product[] = [
@@ -64,24 +64,26 @@ export default function ProductGrid() {
     setProducts(dummyData);
   }, []);
 
-  return (
-    <>
-      {/* Desktop view */}
-      <section className="hidden md:block px-2 md:px-3 pt-0 pb-4">
-        <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-4">
-          <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-7 text-center">
-            Our Products
-          </h2>
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-        </div>
-      </section>
+  const visibleProducts = showAll ? products : products.slice(0, 12);
 
-      {/* Mobile view */}
-      <MobileProductGrid />
-    </>
+  return (
+    <section className="block md:hidden px-2 py-4">
+      <div className="grid grid-cols-3 gap-2">
+        {visibleProducts.map((product) => (
+          <MobileProductCard key={product.id} product={product} />
+        ))}
+      </div>
+
+      {!showAll && products.length > 12 && (
+        <div className="flex justify-center mt-4">
+          <button
+            onClick={() => setShowAll(true)}
+            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Read More
+          </button>
+        </div>
+      )}
+    </section>
   );
 }

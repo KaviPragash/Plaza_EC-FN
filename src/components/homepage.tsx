@@ -1,11 +1,13 @@
 import HeroBanner from "@/components/hero/heroBanner";
 import CategorySidebar from "@/components/categorysidebar/categorySideBar";
 import ProductGrid from "@/components/product/productGrid";
+import MobileProductGrid from "@/components/product/MobileProductGrid";
 import TrendingProducts from "@/components/trending/trendingProducts";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen bg-white text-gray-800">
+      {/* Hero Section */}
       <HeroBanner />
 
       {/* Sidebar + Product Grid Section */}
@@ -19,13 +21,21 @@ export default function HomePage() {
 
             {/* Product Grid */}
             <div className="flex-grow">
-              <ProductGrid />
+              {/* Mobile View */}
+              <div className="block md:hidden">
+                <MobileProductGrid />
+              </div>
+
+              {/* Desktop View */}
+              <div className="hidden md:block">
+                <ProductGrid />
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Trending */}
+      {/* Trending Products */}
       <div className="px-4 md:px-8 py-6">
         <div className="max-w-[1440px] mx-auto">
           <TrendingProducts />

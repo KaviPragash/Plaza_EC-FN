@@ -6,12 +6,12 @@ type HeroSlideProps = {
 
 export default function HeroSlide({ image }: HeroSlideProps) {
   return (
-    <div className="relative w-full h-[450px] flex-shrink-0">
+    <div className="relative w-full h-[220px] md:h-[450px] flex-shrink-0">
       <Image
         src={image}
         alt=""
         fill
-        className="object-fit"
+        className="object-cover"
         priority
       />
     </div>
