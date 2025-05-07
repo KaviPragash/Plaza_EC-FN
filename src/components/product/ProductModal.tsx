@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import QuantitySelector from "./QuantitySelector";
+import { useCart } from "@/contexts/CartContext";
+import { ShoppingCart } from "lucide-react";
 
 type Product = {
   id: string;
@@ -22,6 +24,8 @@ export default function ProductModal({
   onClose: () => void;
 }) {
   const [quantity, setQuantity] = useState(1);
+  const flyRef = useRef<HTMLImageElement | null>(null);
+  const { addToCart, cartIconRefDesktop, cartIconRefMobile } = useCart();
 
   const increase = () => {
     if (quantity < product.stockQuantity) {
@@ -32,6 +36,47 @@ export default function ProductModal({
   const decrease = () => {
     if (quantity > 1) {
       setQuantity((prev) => prev - 1);
+    }
+  };
+
+  const handleCompleteOrder = () => {
+    const isMobile = window.innerWidth < 768;
+    const cartIcon = isMobile ? cartIconRefMobile.current : cartIconRefDesktop.current;
+
+    if (flyRef.current && cartIcon) {
+      const imgRect = flyRef.current.getBoundingClientRect();
+      const cartRect = cartIcon.getBoundingClientRect();
+
+      const cloneImg = flyRef.current.cloneNode(true) as HTMLImageElement;
+      cloneImg.style.position = "absolute";
+      cloneImg.style.left = `${imgRect.left + window.scrollX}px`;
+      cloneImg.style.top = `${imgRect.top + window.scrollY}px`;
+      cloneImg.style.width = `${imgRect.width}px`;
+      cloneImg.style.zIndex = "1000";
+      cloneImg.style.transition = "all 0.7s ease-in-out";
+      document.body.appendChild(cloneImg);
+
+      const offsetX = cartRect.left - imgRect.left + window.scrollX;
+      const offsetY = cartRect.top - imgRect.top;
+
+      setTimeout(() => {
+        cloneImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(0.2)`;
+        cloneImg.style.opacity = "0.7";
+      }, 50);
+
+      setTimeout(() => {
+        document.body.removeChild(cloneImg);
+        addToCart({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          image: product.image,
+          quantity,
+        });
+        onClose();
+      }, 800);
+    } else {
+      console.error("❌ flyRef or cartIconRef is missing");
     }
   };
 
@@ -46,6 +91,7 @@ export default function ProductModal({
         </button>
 
         <img
+          ref={flyRef}
           src={product.image}
           alt={product.name}
           className="w-full h-48 object-contain rounded mb-4"
@@ -65,8 +111,11 @@ export default function ProductModal({
           decrease={decrease}
         />
 
-        <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded">
-          Complete Order
+        <button
+          onClick={handleCompleteOrder}
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded mt-4 flex items-center justify-center gap-2"
+          >
+            <ShoppingCart size={16} /> Add to Cart
         </button>
       </div>
     </div>

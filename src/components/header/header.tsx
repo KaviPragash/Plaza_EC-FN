@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, ShoppingCart } from "lucide-react";
 import SearchBar from "./searchBar";
 import LoginButton from "./loginButton";
-import CartButton from "./cartButton";
 import MobileSidebarDrawer from "./MobileSidebarDrawer";
+import CartSidebar from "../cart/CartSidebar";
+import { useCart } from "@/contexts/CartContext";
 
 export default function Header() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const { cartItems, cartIconRefDesktop, cartIconRefMobile } = useCart();
 
   return (
     <>
@@ -24,9 +27,22 @@ export default function Header() {
           </button>
         </div>
 
+        {/* Mobile: Login and Cart Icons */}
         <div className="absolute top-4 right-4 flex md:hidden gap-4 z-10">
           <LoginButton />
-          <CartButton />
+          <button
+            ref={cartIconRefMobile}
+            onClick={() => setCartOpen(true)}
+            className="relative text-gray-700"
+            aria-label="Open cart"
+          >
+            <ShoppingCart size={22} />
+            {cartItems.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                {cartItems.length}
+              </span>
+            )}
+          </button>
         </div>
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
@@ -37,16 +53,33 @@ export default function Header() {
 
           <SearchBar />
 
+          {/* Desktop: Login and Cart Icons */}
           <div className="hidden md:flex items-center gap-4">
             <LoginButton />
-            <CartButton />
+            <button
+              ref={cartIconRefDesktop}
+              onClick={() => setCartOpen(true)}
+              className="relative text-gray-700"
+              aria-label="Open cart"
+            >
+              <ShoppingCart size={22} />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                  {cartItems.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
       </header>
 
+      {/* Mobile Sidebar */}
       {sidebarOpen && (
         <MobileSidebarDrawer onClose={() => setSidebarOpen(false)} />
       )}
+
+      {/* Cart Sidebar */}
+      <CartSidebar isOpen={cartOpen} onClose={() => setCartOpen(false)} />
     </>
   );
 }

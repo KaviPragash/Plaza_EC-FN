@@ -69,7 +69,7 @@ export default function ProductGrid() {
       {/* Desktop view */}
       <section className="hidden md:block px-2 md:px-3 pt-0 pb-4">
         <div className="bg-white border border-gray-200 shadow-sm rounded-lg p-4">
-          <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-7 text-center">
+          <h2 className="text-lg md:text-xl font-bold text-gray-800 mb-4 text-center">
             Our Products
           </h2>
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
