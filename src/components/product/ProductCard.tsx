@@ -4,7 +4,6 @@
 import { useState, useRef } from "react";
 import ProductModal from "./ProductModal";
 import { Heart, Eye } from "lucide-react";
-import { useCart } from "@/contexts/CartContext";
 
 export type Product = {
   id: string;

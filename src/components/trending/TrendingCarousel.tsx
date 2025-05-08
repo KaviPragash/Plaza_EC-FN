@@ -8,6 +8,10 @@ type Product = {
   name: string;
   image: string;
   price: number;
+  description: string;
+  size: string;
+  stockStatus: string;
+  stockQuantity: number;
 };
 
 export default function TrendingCarousel({ products }: { products: Product[] }) {
