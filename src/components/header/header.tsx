@@ -15,12 +15,14 @@ export default function Header() {
 
   return (
     <>
-      <header className="w-full px-4 py-4 bg-white shadow-md relative">
+      <header
+        className="w-full px-4 py-4 relative shadow-md bg-[#1a1a2e] text-white sticky top-0 z-50"
+      >
         {/* Mobile: Left hamburger + Right icons */}
         <div className="absolute top-4 left-4 md:hidden z-10">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-gray-700"
+            className="text-gray-200 hover:text-white transition-colors"
             aria-label="Open categories"
           >
             <Menu size={22} />
@@ -33,7 +35,7 @@ export default function Header() {
           <button
             ref={cartIconRefMobile}
             onClick={() => setCartOpen(true)}
-            className="relative text-gray-700"
+            className="relative text-gray-200 hover:text-white transition-colors"
             aria-label="Open cart"
           >
             <ShoppingCart size={22} />
@@ -47,7 +49,7 @@ export default function Header() {
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
           {/* Logo (centered on mobile, left on desktop) */}
-          <div className="text-2xl font-bold tracking-wide text-gray-800">
+          <div className="text-2xl font-bold tracking-wide text-white">
             Plaza
           </div>
 
@@ -59,7 +61,7 @@ export default function Header() {
             <button
               ref={cartIconRefDesktop}
               onClick={() => setCartOpen(true)}
-              className="relative text-gray-700"
+              className="relative text-gray-200 hover:text-white transition-colors"
               aria-label="Open cart"
             >
               <ShoppingCart size={22} />

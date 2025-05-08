@@ -1,6 +1,7 @@
 "use client";
 
 import { useCart, Product } from "@/contexts/CartContext";
+import { useRouter } from "next/navigation"; 
 
 type CartSidebarProps = {
   isOpen: boolean;
@@ -9,6 +10,13 @@ type CartSidebarProps = {
 
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { cartItems, removeFromCart } = useCart();
+  const router = useRouter(); 
+
+  // 🛒 Navigate to Order Page
+  const handleCheckout = () => {
+    onClose();
+    router.push("/order");
+  };
 
   return (
     <>
@@ -29,7 +37,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         </div>
 
         {cartItems.length > 0 ? (
-          <ul className="space-y-4">
+          <ul className="space-y-4 pb-20"> {/* 👈 Added padding at the bottom */}
             {cartItems.map((item: Product) => (
               <li key={item.id} className="flex items-center gap-4">
                 <img
@@ -60,6 +68,16 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
             Your cart is empty.
           </p>
         )}
+
+        {/* ✅ Checkout Button Always at the Bottom */}
+        <div className="fixed bottom-4 right-4 w-[18rem]">
+          <button
+            onClick={handleCheckout}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium"
+          >
+            Checkout
+          </button>
+        </div>
       </div>
 
       {/* Overlay */}
