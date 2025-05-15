@@ -40,7 +40,7 @@ export default function HelpSupportCard() {
         <ul className="text-sm text-gray-600 space-y-1">
           <li className="hover:text-blue-600 cursor-pointer">• How can I track my package?</li>
           <li className="hover:text-blue-600 cursor-pointer">• Can I modify my order?</li>
-          <li className="hover:text-blue-600 cursor-pointer">• What's your return policy?</li>
+          <li className="hover:text-blue-600 cursor-pointer">• What&apos;s your return policy?</li>
         </ul>
       </div>
     </div>

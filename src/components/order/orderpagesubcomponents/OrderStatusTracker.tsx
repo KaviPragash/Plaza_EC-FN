@@ -82,7 +82,7 @@ export default function OrderStatusTracker({ orderStatus }: OrderStatusTrackerPr
         )}
         {orderStatus === "checkout" && (
           <p className="text-gray-700">
-            You're at checkout. Review your order and complete payment.
+            You&apos;re at checkout. Review your order and complete payment.
           </p>
         )}
         {orderStatus === "purchase_confirmed" && (
