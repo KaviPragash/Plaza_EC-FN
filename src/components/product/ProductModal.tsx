@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import QuantitySelector from "./QuantitySelector";
 import { useCart } from "@/contexts/CartContext";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 
 type Product = {
   id: string;
@@ -24,8 +25,17 @@ export default function ProductModal({
   onClose: () => void;
 }) {
   const [quantity, setQuantity] = useState(1);
+  const [isMounted, setIsMounted] = useState(false);
   const flyRef = useRef<HTMLImageElement | null>(null);
   const { addToCart, cartIconRefDesktop, cartIconRefMobile } = useCart();
+
+  useEffect(() => {
+    setIsMounted(true);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
 
   const increase = () => {
     if (quantity < product.stockQuantity) {
@@ -37,6 +47,10 @@ export default function ProductModal({
     if (quantity > 1) {
       setQuantity((prev) => prev - 1);
     }
+  };
+
+  const handleClose = () => {
+    onClose();
   };
 
   const handleCompleteOrder = () => {
@@ -73,37 +87,64 @@ export default function ProductModal({
           image: product.image,
           quantity,
         });
-        onClose();
+        handleClose();
       }, 800);
-    } else {
-      console.error("❌ flyRef or cartIconRef is missing");
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 bg-white/30 backdrop-blur-sm flex items-center justify-center">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg relative">
+  const formattedPrice = new Intl.NumberFormat("en-LK", {
+    style: "decimal",
+    minimumFractionDigits: 2,
+  }).format(product.price);
+
+  if (!isMounted) return null;
+
+  return createPortal(
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[6px]"
+      onClick={handleClose}
+    >
+      <div
+        className="relative bg-white rounded-xl shadow-xl w-full max-w-sm p-6 mx-4"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 text-xl font-bold"
+          onClick={handleClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition"
         >
-          &times;
+          <X size={18} />
         </button>
 
-        <img
-          ref={flyRef}
-          src={product.image}
-          alt={product.name}
-          className="w-full h-48 object-contain rounded mb-4"
-        />
+        <div className="flex justify-center mb-4">
+          <img
+            ref={flyRef}
+            src={product.image}
+            alt={product.name}
+            className="w-32 h-32 object-contain"
+          />
+        </div>
 
-        <h2 className="text-lg font-semibold mb-1">{product.name}</h2>
-        <p className="text-sm text-gray-600 mb-1">Size: {product.size}</p>
-        <p className="text-sm text-gray-600 mb-1">Stock: {product.stockStatus}</p>
-        <p className="text-sm text-gray-600 mb-1">Available: {product.stockQuantity}</p>
-        <p className="text-blue-600 font-bold text-md mb-3">
-          LKR {product.price.toFixed(2)}
-        </p>
+        <h2 className="text-lg font-semibold text-center mb-1">{product.name}</h2>
+        <p className="text-sm text-center text-gray-500 mb-4">{product.description}</p>
+
+        <div className="flex justify-center gap-2 text-sm text-gray-600 mb-2">
+          <span className="bg-gray-100 px-2 py-1 rounded-full">Size: {product.size}</span>
+          <span
+            className={`px-2 py-1 rounded-full ${
+              product.stockQuantity > 0
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            {product.stockQuantity > 0
+              ? `Available: ${product.stockQuantity}`
+              : "Out of Stock"}
+          </span>
+        </div>
+
+        <div className="text-center text-xl font-bold text-blue-600 mb-4">
+          LKR {formattedPrice}
+        </div>
 
         <QuantitySelector
           quantity={quantity}
@@ -113,11 +154,18 @@ export default function ProductModal({
 
         <button
           onClick={handleCompleteOrder}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded mt-4 flex items-center justify-center gap-2"
-          >
-            <ShoppingCart size={16} /> Add to Cart
+          disabled={product.stockQuantity === 0}
+          className={`mt-4 w-full py-3 rounded-lg font-semibold text-white transition-all ${
+            product.stockQuantity > 0
+              ? "bg-blue-600 hover:bg-blue-700"
+              : "bg-gray-400 cursor-not-allowed"
+          }`}
+        >
+          <ShoppingCart size={16} className="inline mr-1" />
+          {product.stockQuantity > 0 ? "Add to Cart" : "Out of Stock"}
         </button>
       </div>
-    </div>
+    </div>,
+    document.getElementById("modal-root")!
   );
 }

@@ -1,4 +1,3 @@
-// ✅ Final ProductCard.tsx with 'View' button using Eye icon
 "use client";
 
 import { useState, useRef } from "react";
@@ -30,68 +29,111 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <>
       <div
-        className="group relative bg-white rounded-2xl overflow-hidden flex flex-col h-full border border-gray-100 transition-all duration-500"
-        style={{
-          boxShadow: "0 5px 15px rgba(0, 0, 0, 0.03)",
-          transform: isHovered ? "translateY(-4px)" : "translateY(0)",
-        }}
+        className={`
+          group relative bg-white rounded-xl overflow-hidden flex flex-col h-full 
+          transition-all duration-500 cursor-pointer border border-slate-200
+          shadow-lg shadow-blue-500/10 hover:shadow-2xl hover:shadow-blue-500/20 
+          hover:-translate-y-2 hover:scale-[1.03] hover:border-blue-200
+          before:absolute before:inset-0 before:bg-gradient-to-br before:from-blue-50/30 before:via-transparent before:to-purple-50/30 before:opacity-100 before:transition-opacity before:duration-500 hover:before:opacity-100
+        `}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onClick={() => setShowModal(true)}
       >
+        {/* Favorite Button */}
         <button
-          onClick={() => setIsFavorite(!isFavorite)}
-          className="absolute top-3 right-3 z-10 bg-white/90 p-2 rounded-full shadow-md transition-all opacity-0 group-hover:opacity-100 hover:bg-gray-50"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsFavorite(!isFavorite);
+          }}
+          className={`
+            absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all duration-300
+            bg-white/90 shadow-md opacity-80 hover:opacity-100 hover:scale-110 hover:rotate-12
+            ${isFavorite ? 'opacity-100 scale-110 rotate-12' : ''}
+          `}
           aria-label="Add to favorites"
         >
           <Heart
-            size={16}
+            size={14}
             className={`${
-              isFavorite ? "fill-red-500 text-red-500" : "text-gray-400"
-            } transition-colors`}
+              isFavorite ? "fill-red-500 text-red-500 animate-pulse" : "text-gray-600"
+            } transition-all duration-300`}
           />
         </button>
 
-        <div className="relative w-full pt-[91%] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
-          <img
-            ref={flyRef}
-            src={product.image}
-            alt={product.name}
-            className="absolute inset-0 w-full h-full object-contain p-6 transition-all duration-700 group-hover:scale-105"
-          />
+        {/* Product Image */}
+        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-100 p-3 overflow-hidden">
+          <div className="aspect-square flex items-center justify-center relative">
+            <img
+              ref={flyRef}
+              src={product.image}
+              alt={product.name}
+              className="w-full h-full object-contain z-10"
+            />
+            
+            <div className="absolute inset-0 opacity-60">
+              <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{animationDelay: '0s'}}></div>
+              <div className="absolute top-3/4 right-1/3 w-1 h-1 bg-purple-400 rounded-full animate-ping" style={{animationDelay: '0.5s'}}></div>
+              <div className="absolute bottom-1/4 left-2/3 w-1 h-1 bg-blue-300 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
+            </div>
+          </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 via-transparent to-purple-500/5 opacity-100" />
         </div>
 
-        <div className="flex flex-col flex-grow p-4">
+        {/* Content */}
+        <div className={`
+          flex flex-col flex-grow p-3 bg-white transition-transform duration-300 ease-out
+          ${isHovered ? 'translate-y-[-4px]' : 'translate-y-0'}
+        `}>
+          {/* Size Badge */}
           <div className="mb-2">
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-1">
+            <span className="inline-block px-2 py-0.5 bg-gradient-to-r from-slate-100 to-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider rounded-full">
               {product.size}
-            </p>
-            <h3 className="font-medium text-gray-900 leading-tight line-clamp-2 text-base mb-1 group-hover:text-blue-600 transition-colors duration-200">
-              {product.name}
-            </h3>
-            <p className="text-xs text-gray-500 line-clamp-1">
-              {product.description}
-            </p>
+            </span>
           </div>
 
-          <div className="mt-auto pt-3 border-t border-gray-100">
-            <div className="flex items-center justify-between">
+          {/* Product Name */}
+          <h3 className="font-bold text-slate-800 text-sm leading-tight mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
+            {product.name}
+          </h3>
+
+          
+          {/* Price Section */}
+          <div className="border-t border-slate-100 pt-2 mt-auto">
+            <div className="flex items-end justify-between mb-2">
               <div>
-                <p className="text-blue-600 font-bold">LKR {formattedPrice}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-lg font-bold text-blue-600 leading-none">
+                  LKR {formattedPrice}
+                </p>
+                <p className="text-xs text-slate-500 mt-0.5">
                   {product.stockQuantity > 0
-                    ? `${product.stockQuantity} units available`
+                    ? `${product.stockQuantity} units`
                     : "Out of stock"}
                 </p>
               </div>
-
-              <button
-                onClick={() => setShowModal(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all bg-blue-600 hover:bg-blue-700 text-white shadow-sm hover:shadow"
-              >
-                <Eye size={14} />
-                <span>View</span>
-              </button>
             </div>
+
+            {/* Action Button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowModal(true);
+              }}
+              className={`
+                w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg
+                font-semibold text-xs transition-all duration-300 relative overflow-hidden
+                ${isHovered
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-105 transform'
+                  : 'bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-600'
+                }
+                before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent 
+                before:translate-x-[-100%] before:transition-transform before:duration-700
+                ${isHovered ? 'before:translate-x-[100%]' : ''}
+              `}
+            >
+              <Eye size={14} className={isHovered ? 'animate-bounce' : ''} />
+              <span>View Details</span>
+            </button>
           </div>
         </div>
       </div>
@@ -99,6 +141,21 @@ export default function ProductCard({ product }: { product: Product }) {
       {showModal && (
         <ProductModal product={product} onClose={() => setShowModal(false)} />
       )}
+
+      <style jsx>{`
+        .line-clamp-1 {
+          display: -webkit-box;
+          -webkit-line-clamp: 1;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        .line-clamp-2 {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+      `}</style>
     </>
   );
 }

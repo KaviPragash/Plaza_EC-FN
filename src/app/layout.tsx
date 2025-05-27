@@ -22,9 +22,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <CartProvider>
           <Header />
           <main className="flex-grow">{children}</main>
+          <div id="modal-root" /> 
           <Footer />
         </CartProvider>
       </body>
     </html>
   );
 }
+
+
