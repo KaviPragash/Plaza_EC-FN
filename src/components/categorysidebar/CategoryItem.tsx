@@ -1,28 +1,31 @@
-"use client";
-
 import { ChevronRight } from "lucide-react";
 
-type Props = {
+interface CategoryItemProps {
   type: string;
   icon: string;
-  isHovered: boolean;
-};
+  index: number;
+}
 
-export default function CategoryItem({ type, icon, isHovered }: Props) {
+export default function CategoryItem({ type, icon, index }: CategoryItemProps) {
   return (
     <div
-      className={`px-4 py-3 rounded-lg cursor-pointer transition-all duration-300 flex items-center justify-between
-        ${isHovered 
-          ? "bg-blue-50 text-blue-700 font-medium"
-          : "hover:bg-gray-50 text-gray-700"
-        }`}
+      className={`relative px-4 py-3 rounded-xl cursor-pointer transition-all duration-300 ease-out flex items-center justify-between group overflow-hidden
+        transform hover:scale-[1.02] hover:-translate-y-0.5 hover:bg-gray-50 text-gray-700 hover:shadow-md`}
+      style={{
+        animationDelay: `${index * 100}ms`,
+      }}
     >
-      <div className="flex items-center gap-3">
-        <span className="flex-shrink-0 opacity-80">{icon}</span>
-        <span>{type}</span>
+      <div className="flex items-center gap-3 relative z-10">
+        <span className={`flex-shrink-0 text-lg transition-all duration-300 group-hover:scale-105`}>
+          {icon}
+        </span>
+        <span className="transition-all duration-300">{type}</span>
       </div>
-      <ChevronRight size={16} className={`transition-transform duration-300 
-        ${isHovered ? 'text-blue-500 transform translate-x-1' : 'text-gray-400'}`} />
+      
+      <ChevronRight 
+        size={16} 
+        className="transition-all duration-300 relative z-10 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5" 
+      />
     </div>
   );
 }

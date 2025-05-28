@@ -2,6 +2,7 @@ import HeroBanner from "@/components/hero/heroBanner";
 import CategorySidebar from "@/components/categorysidebar/DesktopCategorySideBar";
 import ProductGrid from "@/components/product/productGrid";
 import MobileProductGrid from "@/components/product/MobileProductGrid";
+import PromotionalBanner from "@/components/promotional/PromotionalBanner";
 import TrendingProducts from "@/components/trending/trendingProducts";
 
 export default function HomePage() {
@@ -34,6 +35,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Promotional Banner Section */}
+      <PromotionalBanner />
 
       {/* Trending Products */}
       <div className="px-4 md:px-8 py-6">

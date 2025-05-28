@@ -1,7 +1,7 @@
 "use client";
 
 import { useCart, Product } from "@/contexts/CartContext";
-import { useRouter } from "next/navigation"; 
+import { useRouter } from "next/navigation";
 
 type CartSidebarProps = {
   isOpen: boolean;
@@ -10,9 +10,8 @@ type CartSidebarProps = {
 
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { cartItems, removeFromCart } = useCart();
-  const router = useRouter(); 
+  const router = useRouter();
 
-  // 🛒 Navigate to Order Page
   const handleCheckout = () => {
     onClose();
     router.push("/order");
@@ -20,9 +19,8 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   return (
     <>
-      {/* Sidebar */}
       <div
-        className={`fixed top-0 right-0 w-80 bg-white h-full shadow-lg p-4 overflow-y-auto z-50 transition-transform duration-500 ${
+        className={`fixed top-0 right-0 w-96 bg-white h-full shadow-lg p-4 overflow-y-auto z-50 transition-transform duration-500 ${
           isOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -37,7 +35,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         </div>
 
         {cartItems.length > 0 ? (
-          <ul className="space-y-4 pb-20"> {/* 👈 Added padding at the bottom */}
+          <ul className="space-y-4 pb-20">
             {cartItems.map((item: Product) => (
               <li key={item.id} className="flex items-center gap-4">
                 <img
@@ -69,8 +67,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
           </p>
         )}
 
-        {/* ✅ Checkout Button Always at the Bottom */}
-        <div className="fixed bottom-4 right-4 w-[18rem]">
+        <div className="fixed bottom-4 right-4 w-[22rem] max-w-[90vw]">
           <button
             onClick={handleCheckout}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg text-sm font-medium"
@@ -80,7 +77,6 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         </div>
       </div>
 
-      {/* Overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"

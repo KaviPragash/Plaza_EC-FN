@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
-import TrendingCard from "./TrendingCard";
+import ProductCard from "../product/ProductCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 type Product = {
   id: string;
@@ -33,7 +34,7 @@ export default function TrendingCarousel({ products }: { products: Product[] }) 
     const el = scrollRef.current;
     const resizeObserver = new ResizeObserver(() => {
       if (cardRef.current) {
-        setCardWidth(cardRef.current.offsetWidth + 16); 
+        setCardWidth(cardRef.current.offsetWidth + 12);
       }
     });
 
@@ -58,51 +59,99 @@ export default function TrendingCarousel({ products }: { products: Product[] }) 
 
   return (
     <>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl md:text-2xl font-bold text-gray-800">Trending Products</h2>
-        <div className="flex gap-2">
-          {canScrollLeft && (
-            <button
-              onClick={() => scroll("left")}
-              className="p-2 rounded-full bg-gray-100 hover:bg-blue-200 shadow transition"
-            >
-              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-          )}
-          {canScrollRight && (
-            <button
-              onClick={() => scroll("right")}
-              className="p-2 rounded-full bg-gray-100 hover:bg-blue-200 shadow transition"
-            >
-              <svg className="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-              </svg>
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div
-        ref={scrollRef}
-        className="flex overflow-x-auto gap-4 pb-1 pr-2 scroll-smooth"
-        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-      >
-        {products.map((product, index) => (
-          <div
-            key={product.id}
-            ref={index === 0 ? cardRef : null}
-            className="flex-shrink-0"
-          >
-            <TrendingCard product={product} />
+      <section className="px-4 py-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-rose-500 via-purple-600 to-blue-500 bg-clip-text text-transparent animate-fadeIn">
+              Trending Products
+            </h2>
+            <p className="text-gray-600 text-sm mt-1">
+              Hot picks that everyone&#39;s talking about
+            </p>
           </div>
-        ))}
-      </div>
+
+          <div className="relative">
+            {canScrollLeft && (
+              <button
+                onClick={() => scroll("left")}
+                className="absolute left-2 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white/95 hover:bg-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border border-gray-200 backdrop-blur-sm"
+                aria-label="Scroll left"
+              >
+                <ChevronLeft size={20} className="text-gray-700" />
+              </button>
+            )}
+
+            {canScrollRight && (
+              <button
+                onClick={() => scroll("right")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 z-10 p-3 rounded-full bg-white/95 hover:bg-white shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border border-gray-200 backdrop-blur-sm"
+                aria-label="Scroll right"
+              >
+                <ChevronRight size={20} className="text-gray-700" />
+              </button>
+            )}
+
+            <div
+              ref={scrollRef}
+              className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              {products.map((product, index) => (
+                <div
+                  key={product.id}
+                  ref={index === 0 ? cardRef : null}
+                  className="flex-none w-36 sm:w-40 md:w-44 transform hover:scale-105 transition-all duration-300"
+                  style={{
+                    animationDelay: `${index * 100}ms`,
+                    animation: 'slideInRight 0.6s ease-out forwards'
+                  }}
+                >
+                  <ProductCard product={product} />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-center mt-6 gap-2">
+              {Array.from({ length: Math.ceil(products.length / 3) }).map((_, index) => (
+                <div
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-gray-400 hover:bg-gray-600 transition-colors duration-300"
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
 
       <style jsx>{`
-        div::-webkit-scrollbar {
+        .scrollbar-hide::-webkit-scrollbar {
           display: none;
+        }
+
+        @keyframes slideInRight {
+          from {
+            opacity: 0;
+            transform: translateX(30px);
+          }
+          to {
+            opacity: 1;
+            transform: translateX(0);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.6s ease-out forwards;
         }
       `}</style>
     </>
