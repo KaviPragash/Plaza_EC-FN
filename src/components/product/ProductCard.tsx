@@ -62,7 +62,7 @@ export default function ProductCard({ product }: { product: Product }) {
         </button>
 
         {/* Product Image */}
-        <div className="relative bg-gradient-to-br from-slate-50 via-white to-slate-100 p-3 overflow-hidden">
+        <div className="relative">
           <div className="aspect-square flex items-center justify-center relative">
             <img
               ref={flyRef}
