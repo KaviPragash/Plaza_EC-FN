@@ -1,7 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Menu, Smartphone, ShoppingCart, CupSoda, Heart, Folder } from "lucide-react";
+import {
+  Menu,
+  Smartphone,
+  ShoppingCart,
+  CupSoda,
+  Heart,
+  Folder
+} from "lucide-react";
 import CategoryItem from "./CategoryItem";
 import SubcategoryMenu from "./SubcategoryMenu";
 import { supabase } from "@/lib/supabaseClient";
@@ -12,6 +19,12 @@ interface Category {
   mCategory_name: string;
 }
 
+interface SubCategory {
+  SCategory_code: string;
+  SCategory_name: string;
+  MainCategory_code: string;
+}
+
 const iconMap: Record<string, JSX.Element> = {
   "Electronics Items": <Smartphone size={18} />,
   "Grocery & Staples": <ShoppingCart size={18} />,
@@ -20,26 +33,56 @@ const iconMap: Record<string, JSX.Element> = {
   default: <Folder size={18} />
 };
 
+const colorList = ["blue", "purple", "green", "orange", "pink"];
+
 export default function CategorySidebar() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [subcategoriesMap, setSubcategoriesMap] = useState<Record<string, string[]>>({});
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(false);
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>({});
+
   const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    async function fetchCategories() {
-      const { data, error } = await supabase.from("MainCategory").select("*");
-      if (error) {
-        console.error("Error fetching categories:", error.message);
+    async function fetchData() {
+      const [categoryRes, subcategoryRes] = await Promise.all([
+        supabase.from("MainCategory").select("*"),
+        supabase.from("SubCategory").select("*")
+      ]);
+
+      if (categoryRes.error) {
+        console.error("Error fetching categories:", categoryRes.error.message);
       } else {
-        setCategories(data);
+        const categoryData = categoryRes.data || [];
+        setCategories(categoryData);
+
+        const assignedColors: Record<string, string> = {};
+        categoryData.forEach((cat) => {
+          assignedColors[cat.mCategory_code] = colorList[Math.floor(Math.random() * colorList.length)];
+        });
+        setCategoryColors(assignedColors);
       }
+
+      if (subcategoryRes.error) {
+        console.error("Error fetching subcategories:", subcategoryRes.error.message);
+      } else {
+        const grouped: Record<string, string[]> = {};
+        for (const sub of subcategoryRes.data || []) {
+          if (!grouped[sub.MainCategory_code]) {
+            grouped[sub.MainCategory_code] = [];
+          }
+          grouped[sub.MainCategory_code].push(sub.SCategory_name);
+        }
+        setSubcategoriesMap(grouped);
+      }
+
+      setIsVisible(true);
     }
 
-    fetchCategories();
-    setIsVisible(true);
+    fetchData();
 
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -65,9 +108,10 @@ export default function CategorySidebar() {
 
   return (
     <div className="relative flex h-full py-8" ref={containerRef}>
-      <aside className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ height: !expanded ? '620px' : 'auto' }}>
-        
-        {/* Header */}
+      <aside
+        className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        style={{ height: !expanded ? "620px" : "auto" }}
+      >
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
             <span className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl text-white shadow-lg transform hover:scale-110 transition-transform duration-300">
@@ -80,8 +124,7 @@ export default function CategorySidebar() {
           <div className="w-16 h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full" />
         </div>
 
-        {/* Categories List */}
-        <ul className={`space-y-3 ${expanded ? 'flex-grow' : 'flex-grow overflow-hidden'}`}>
+        <ul className={`space-y-3 ${expanded ? "flex-grow" : "flex-grow overflow-hidden"}`}>
           {visibleCategories.map((cat, index) => (
             <li
               key={cat.mCategory_code}
@@ -101,7 +144,6 @@ export default function CategorySidebar() {
           ))}
         </ul>
 
-        {/* Expand Button */}
         {categories.length > 5 && (
           <div className="mt-4 text-center">
             <button
@@ -113,7 +155,6 @@ export default function CategorySidebar() {
           </div>
         )}
 
-        {/* Footer Animation */}
         <div className="mt-6 pt-6 border-t border-gray-200 text-center">
           <div className="bg-gradient-to-r from-gray-600 to-gray-700 bg-clip-text text-transparent text-sm font-medium mb-3">
             Discover Amazing Deals
@@ -130,7 +171,6 @@ export default function CategorySidebar() {
         </div>
       </aside>
 
-      {/* Submenu */}
       {hoveredIndex !== null && (
         <div
           className="absolute left-full top-0 z-20 h-full ml-2 hidden md:block"
@@ -139,9 +179,9 @@ export default function CategorySidebar() {
         >
           <SubcategoryMenu
             category={categories[hoveredIndex].mCategory_name}
-            subcategories={[]} 
+            subcategories={subcategoriesMap[categories[hoveredIndex].mCategory_code] || []}
             visible={true}
-            color="blue"
+            color={categoryColors[categories[hoveredIndex].mCategory_code] || "blue"}
           />
         </div>
       )}
