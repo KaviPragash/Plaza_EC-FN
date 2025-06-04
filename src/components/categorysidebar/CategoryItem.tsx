@@ -1,8 +1,9 @@
 import { ChevronRight } from "lucide-react";
+import { JSX } from "react";
 
 interface CategoryItemProps {
   type: string;
-  icon: string;
+  icon: JSX.Element;
   index: number;
 }
 
