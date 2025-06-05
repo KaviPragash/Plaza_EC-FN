@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { X, ChevronRight } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient";
 
 interface Category {
   mCategory_code: string;
@@ -12,7 +11,10 @@ interface Category {
 interface Subcategory {
   SCategory_code: string;
   SCategory_name: string;
-  MainCategory_code: string;
+  MainCategory: {
+    mCategory_code: string;
+    mCategory_name: string;
+  };
 }
 
 const colorClasses = [
@@ -31,19 +33,21 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
 
   useEffect(() => {
     async function fetchData() {
-      const { data: catData, error: catErr } = await supabase
-        .from("MainCategory")
-        .select("mCategory_code, mCategory_name");
+      try {
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const [catRes, subRes] = await Promise.all([
+          fetch(`${base}/getallMCategory`),
+          fetch(`${base}/getallSubCategory`)
+        ]);
 
-      const { data: subData, error: subErr } = await supabase
-        .from("SubCategory")
-        .select("SCategory_code, SCategory_name, MainCategory_code");
+        const catJson = await catRes.json();
+        const subJson = await subRes.json();
 
-      if (catErr) console.error("Category fetch error:", catErr.message);
-      else setCategories(catData || []);
-
-      if (subErr) console.error("Subcategory fetch error:", subErr.message);
-      else setSubcategories(subData || []);
+        setCategories(catJson || []);
+        setSubcategories(subJson || []);
+      } catch (err) {
+        console.error("API Error:", err);
+      }
     }
 
     fetchData();
@@ -58,34 +62,25 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
   return (
     <div className="fixed inset-0 z-50 flex md:hidden">
       <div className="w-80 bg-gradient-to-b from-white to-gray-50/80 h-full shadow-2xl backdrop-blur-sm border-r border-gray-200/50 overflow-hidden">
-        {/* Header with enhanced styling matching desktop */}
         <div className="bg-white/90 backdrop-blur-sm border-b border-gray-200/50 p-6 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <span className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl text-white shadow-lg transform hover:scale-110 transition-transform duration-300">
               <X size={16} className="rotate-45" />
             </span>
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent tracking-tight">
-                Categories
-              </h2>
+              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent tracking-tight">Categories</h2>
               <div className="w-12 h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mt-1" />
             </div>
           </div>
-          <button 
-            onClick={onClose} 
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 hover:scale-105"
-          >
+          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all duration-200 hover:scale-105">
             <X size={20} />
           </button>
         </div>
 
-        {/* Scrollable Category List with enhanced styling */}
         <div className="px-4 py-4 overflow-y-auto max-h-[calc(100vh-140px)] scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
           <div className="space-y-3">
             {visibleCategories.map((cat, index) => {
-              const catSub = subcategories.filter(
-                (sub) => sub.MainCategory_code === cat.mCategory_code
-              );
+              const catSub = subcategories.filter(sub => sub.MainCategory.mCategory_code === cat.mCategory_code);
               const color = colorClasses[index % colorClasses.length];
 
               return (
@@ -145,7 +140,6 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
           </div>
         </div>
 
-        {/* Enhanced View More Button */}
         {categories.length > 10 && (
           <div className="border-t border-gray-200/50 bg-white/90 backdrop-blur-sm p-4">
             <button
@@ -158,7 +152,6 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
         )}
       </div>
 
-      {/* Enhanced Backdrop */}
       <div className="flex-grow bg-black/40 backdrop-blur-md" onClick={onClose} />
     </div>
   );

@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import CategoryItem from "./CategoryItem";
 import SubcategoryMenu from "./SubcategoryMenu";
-import { supabase } from "@/lib/supabaseClient";
 import type { JSX } from "react";
 
 interface Category {
@@ -22,7 +21,10 @@ interface Category {
 interface SubCategory {
   SCategory_code: string;
   SCategory_name: string;
-  MainCategory_code: string;
+  MainCategory: {
+    mCategory_code: string;
+    mCategory_name: string;
+  };
 }
 
 const iconMap: Record<string, JSX.Element> = {
@@ -48,38 +50,41 @@ export default function CategorySidebar() {
 
   useEffect(() => {
     async function fetchData() {
-      const [categoryRes, subcategoryRes] = await Promise.all([
-        supabase.from("MainCategory").select("*"),
-        supabase.from("SubCategory").select("*")
-      ]);
+      try {
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const [catRes, subRes] = await Promise.all([
+          fetch(`${base}/getallMCategory`),
+          fetch(`${base}/getallSubCategory`)
+        ]);
 
-      if (categoryRes.error) {
-        console.error("Error fetching categories:", categoryRes.error.message);
-      } else {
-        const categoryData = categoryRes.data || [];
-        setCategories(categoryData);
+        const catJson = await catRes.json();
+        const subJson = await subRes.json();
 
-        const assignedColors: Record<string, string> = {};
-        categoryData.forEach((cat) => {
-          assignedColors[cat.mCategory_code] = colorList[Math.floor(Math.random() * colorList.length)];
+        const catData: Category[] = Array.isArray(catJson) ? catJson : catJson.data || [];
+        const subData: SubCategory[] = Array.isArray(subJson) ? subJson : subJson.data || [];
+
+        setCategories(catData);
+
+        const colors: Record<string, string> = {};
+        catData.forEach((cat: Category) => {
+          colors[cat.mCategory_code] = colorList[Math.floor(Math.random() * colorList.length)];
         });
-        setCategoryColors(assignedColors);
-      }
+        setCategoryColors(colors);
 
-      if (subcategoryRes.error) {
-        console.error("Error fetching subcategories:", subcategoryRes.error.message);
-      } else {
         const grouped: Record<string, string[]> = {};
-        for (const sub of subcategoryRes.data || []) {
-          if (!grouped[sub.MainCategory_code]) {
-            grouped[sub.MainCategory_code] = [];
+        for (const sub of subData) {
+          const mainCode = sub.MainCategory?.mCategory_code;
+          const name = sub.SCategory_name;
+          if (mainCode) {
+            if (!grouped[mainCode]) grouped[mainCode] = [];
+            grouped[mainCode].push(name);
           }
-          grouped[sub.MainCategory_code].push(sub.SCategory_name);
         }
         setSubcategoriesMap(grouped);
+        setIsVisible(true);
+      } catch (error) {
+        console.error("API error:", error);
       }
-
-      setIsVisible(true);
     }
 
     fetchData();
@@ -95,9 +100,7 @@ export default function CategorySidebar() {
   };
 
   const handleMouseLeave = () => {
-    timeoutRef.current = setTimeout(() => {
-      setHoveredIndex(null);
-    }, 150);
+    timeoutRef.current = setTimeout(() => setHoveredIndex(null), 150);
   };
 
   const handleMenuMouseEnter = () => {
@@ -108,10 +111,7 @@ export default function CategorySidebar() {
 
   return (
     <div className="relative flex h-full py-8" ref={containerRef}>
-      <aside
-        className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
-        style={{ height: !expanded ? "620px" : "auto" }}
-      >
+      <aside className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ height: !expanded ? "620px" : "auto" }}>
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
             <span className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl text-white shadow-lg transform hover:scale-110 transition-transform duration-300">
