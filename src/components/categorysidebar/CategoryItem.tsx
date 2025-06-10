@@ -25,7 +25,17 @@ export default function CategoryItem({ type, icon, index }: CategoryItemProps) {
       
       <ChevronRight 
         size={16} 
-        className="transition-all duration-300 relative z-10 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5" 
+        className="transition-all duration-300 relative z-10 text-gray-400 group-hover:text-gray-600 group-hover:translate-x-0.5 group-hover:scale-110" 
+        style={{
+          strokeWidth: '2',
+          transition: 'all 0.3s ease-out'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.strokeWidth = '3';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.strokeWidth = '2';
+        }}
       />
     </div>
   );
