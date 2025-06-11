@@ -22,10 +22,10 @@ export default function Footer() {
         {/* Links Column */}
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-semibold mb-2">Quick Links</h3>
-          <a href="#" className="hover:text-blue-600">Home</a>
-          <a href="#" className="hover:text-blue-600">Shop</a>
-          <a href="#" className="hover:text-blue-600">About Us</a>
-          <a href="#" className="hover:text-blue-600">Contact</a>
+          <a href="#" className="hover:text-blue-600 transition-colors duration-200">Home</a>
+          <a href="#" className="hover:text-blue-600 transition-colors duration-200">Shop</a>
+          <a href="#" className="hover:text-blue-600 transition-colors duration-200">About Us</a>
+          <a href="#" className="hover:text-blue-600 transition-colors duration-200">Contact</a>
         </div>
 
         {/* Newsletter */}
@@ -49,11 +49,32 @@ export default function Footer() {
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-semibold mb-2">Follow Us</h3>
           <div className="flex gap-4 text-gray-700">
-            <a href="#"><Facebook size={20} /></a>
-            <a href="#"><Twitter size={20} /></a>
-            <a href="#"><Instagram size={20} /></a>
-            <a href="#"><Linkedin size={20} /></a>
+            <a href="#" className="hover:text-blue-600 transition-colors duration-200">
+              <Facebook size={20} />
+            </a>
+            <a href="#" className="hover:text-blue-600 transition-colors duration-200">
+              <Twitter size={20} />
+            </a>
+            <a href="#" className="hover:text-blue-600 transition-colors duration-200">
+              <Instagram size={20} />
+            </a>
+            <a href="#" className="hover:text-blue-600 transition-colors duration-200">
+              <Linkedin size={20} />
+            </a>
           </div>
+        </div>
+      </div>
+      
+      {/* Powered By Section */}
+      <div className="max-w-7xl mx-auto mt-10 pt-8 border-t border-gray-200 text-center">
+        <div className="inline-block group relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-700"></div>
+          <p className="text-sm text-gray-600 relative z-10 tracking-wide">
+            <span className="text-gray-400 font-light">Powered by</span>{" "}
+            <span className="font-semibold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-purple-600 to-blue-700 hover:from-blue-700 hover:via-purple-700 hover:to-blue-800 transition-all duration-500 cursor-pointer hover:scale-110 inline-block transform hover:-translate-y-0.5 hover:drop-shadow-sm">
+              verve automation
+            </span>
+          </p>
         </div>
       </div>
     </footer>
