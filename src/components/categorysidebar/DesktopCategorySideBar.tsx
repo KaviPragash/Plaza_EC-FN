@@ -7,10 +7,9 @@ import {
   ShoppingCart,
   CupSoda,
   Heart,
-  Folder
+  Folder,
+  ChevronRight
 } from "lucide-react";
-import CategoryItem from "./CategoryItem";
-import SubcategoryMenu from "./SubcategoryMenu";
 import type { JSX } from "react";
 
 interface Category {
@@ -37,6 +36,48 @@ const iconMap: Record<string, JSX.Element> = {
 
 const colorList = ["blue", "purple", "green", "orange", "pink"];
 
+function CategoryItem({ type, icon }: { type: string; icon: JSX.Element }) {
+  return (
+    <div className="flex items-center justify-between p-3 group">
+      <div className="flex items-center gap-3">
+        {icon}
+        <span className="font-medium text-gray-700">{type}</span>
+      </div>
+      <ChevronRight
+        size={16}
+        className="text-gray-400 group-hover:text-blue-600 group-hover:stroke-[2.5] transition-all"
+      />
+    </div>
+  );
+}
+
+function SubcategoryMenu({
+  category,
+  subcategories,
+  visible,
+  color
+}: {
+  category: string;
+  subcategories: string[];
+  visible: boolean;
+  color: string;
+}) {
+  if (!visible) return null;
+
+  return (
+    <div className="w-60 h-full bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
+      <h3 className={`text-${color}-600 font-semibold mb-2`}>{category}</h3>
+      <ul className="space-y-1">
+        {subcategories.map((sub, idx) => (
+          <li key={idx} className="text-sm text-gray-600 hover:text-black transition">
+            {sub}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export default function CategorySidebar() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategoriesMap, setSubcategoriesMap] = useState<Record<string, string[]>>({});
@@ -51,7 +92,7 @@ export default function CategorySidebar() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL || "https://plaza.verveautomation.com/api/auth";
         const [catRes, subRes] = await Promise.all([
           fetch(`${base}/getallMCategory`),
           fetch(`${base}/getallSubCategory`)
@@ -80,6 +121,7 @@ export default function CategorySidebar() {
             grouped[mainCode].push(name);
           }
         }
+
         setSubcategoriesMap(grouped);
         setIsVisible(true);
       } catch (error) {
@@ -111,7 +153,10 @@ export default function CategorySidebar() {
 
   return (
     <div className="relative flex h-full py-8" ref={containerRef}>
-      <aside className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`} style={{ height: !expanded ? "620px" : "auto" }}>
+      <aside
+        className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        style={{ height: !expanded ? "620px" : "auto" }}
+      >
         <div className="text-center mb-8">
           <h2 className="text-2xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-3">
             <span className="bg-gradient-to-br from-blue-500 to-purple-600 p-2 rounded-xl text-white shadow-lg transform hover:scale-110 transition-transform duration-300">
@@ -137,7 +182,6 @@ export default function CategorySidebar() {
                 <CategoryItem
                   type={cat.mCategory_name}
                   icon={iconMap[cat.mCategory_name] || iconMap.default}
-                  index={index}
                 />
               </div>
             </li>
