@@ -3,18 +3,27 @@
 import { useState } from "react";
 import { Mail, Lock } from "lucide-react";
 
+interface UserData {
+  id: string;
+  email: string;
+  name?: string;
+}
+
 export default function LoginForm({
   onClose,
   switchToRegister,
+  onLoginSuccess,
 }: {
   onClose: () => void;
   switchToRegister: () => void;
+  onLoginSuccess: (userData: UserData) => void;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const newErrors: typeof errors = {};
 
@@ -22,15 +31,47 @@ export default function LoginForm({
     else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = "Email is invalid";
 
     if (!password) newErrors.password = "Password is required";
-    else if (password.length < 6)
-      newErrors.password = "Password must be at least 6 characters";
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
-    alert(`Logging in with email: ${email}`);
+    setLoading(true);
+    setErrors({}); 
+
+    try {
+      const res = await fetch("https://plaza.verveautomation.com/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.message) {
+          setErrors({ password: data.message });
+        } else {
+          setErrors({ password: "Login failed. Please try again." });
+        }
+        return;
+      }
+
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      onLoginSuccess(data.user || { id: data.id, email: data.email, name: data.name });
+
+    } catch (err) {
+      console.error("Login error:", err);
+      setErrors({ password: "Network error. Please try again." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,7 +84,6 @@ export default function LoginForm({
           ×
         </button>
 
-        {/* Logo */}
         <div className="flex justify-center -mt-16 mb-4">
           <div className="w-20 h-20 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-xl shadow-lg border-4 border-white">
             LOGO
@@ -81,14 +121,15 @@ export default function LoginForm({
 
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white py-2.5 rounded-lg font-semibold shadow-md transition-all"
+            disabled={loading}
+            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white py-2.5 rounded-lg font-semibold shadow-md transition-all"
           >
-            Sign In
+            {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-600 mt-4">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <button
             onClick={() => {
               onClose();
