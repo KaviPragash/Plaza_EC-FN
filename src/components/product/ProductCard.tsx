@@ -15,7 +15,13 @@ export type Product = {
   stockQuantity: number;
 };
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({
+  productGroup,
+}: {
+  productGroup: { selected: Product; variants: Product[] };
+}) {
+  const { selected: product, variants } = productGroup;
+
   const [showModal, setShowModal] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -49,7 +55,7 @@ export default function ProductCard({ product }: { product: Product }) {
           className={`
             absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all duration-300
             bg-white/90 shadow-md opacity-80 hover:opacity-100 hover:scale-110 hover:rotate-12
-            ${isFavorite ? 'opacity-100 scale-110 rotate-12' : ''}
+            ${isFavorite ? "opacity-100 scale-110 rotate-12" : ""}
           `}
           aria-label="Add to favorites"
         >
@@ -61,7 +67,7 @@ export default function ProductCard({ product }: { product: Product }) {
           />
         </button>
 
-        {/* Product Image */}
+        {/* Image */}
         <div className="relative">
           <div className="aspect-square flex items-center justify-center relative">
             <img
@@ -70,35 +76,32 @@ export default function ProductCard({ product }: { product: Product }) {
               alt={product.name}
               className="w-full h-full object-contain z-10"
             />
-            
             <div className="absolute inset-0 opacity-60">
-              <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-blue-400 rounded-full animate-ping" style={{animationDelay: '0s'}}></div>
-              <div className="absolute top-3/4 right-1/3 w-1 h-1 bg-purple-400 rounded-full animate-ping" style={{animationDelay: '0.5s'}}></div>
-              <div className="absolute bottom-1/4 left-2/3 w-1 h-1 bg-blue-300 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
+              <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-blue-400 rounded-full animate-ping" />
+              <div className="absolute top-3/4 right-1/3 w-1 h-1 bg-purple-400 rounded-full animate-ping delay-200" />
+              <div className="absolute bottom-1/4 left-2/3 w-1 h-1 bg-blue-300 rounded-full animate-ping delay-400" />
             </div>
           </div>
           <div className="absolute inset-0 bg-gradient-to-t from-blue-500/5 via-transparent to-purple-500/5 opacity-100" />
         </div>
 
-        {/* Content */}
-        <div className={`
+        {/* Info */}
+        <div
+          className={`
           flex flex-col flex-grow p-3 bg-white transition-transform duration-300 ease-out
-          ${isHovered ? 'translate-y-[-4px]' : 'translate-y-0'}
-        `}>
-          {/* Size Badge */}
+          ${isHovered ? "translate-y-[-4px]" : "translate-y-0"}
+        `}
+        >
           <div className="mb-2">
             <span className="inline-block px-2 py-0.5 bg-gradient-to-r from-slate-100 to-slate-200 text-slate-600 text-xs font-semibold uppercase tracking-wider rounded-full">
               {product.size}
             </span>
           </div>
 
-          {/* Product Name */}
           <h3 className="font-bold text-slate-800 text-sm leading-tight mb-1 line-clamp-2 group-hover:text-blue-600 transition-colors duration-300">
             {product.name}
           </h3>
 
-          
-          {/* Price Section */}
           <div className="border-t border-slate-100 pt-2 mt-auto">
             <div className="flex items-end justify-between mb-2">
               <div>
@@ -113,7 +116,6 @@ export default function ProductCard({ product }: { product: Product }) {
               </div>
             </div>
 
-            {/* Action Button */}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -122,16 +124,17 @@ export default function ProductCard({ product }: { product: Product }) {
               className={`
                 w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg
                 font-semibold text-xs transition-all duration-300 relative overflow-hidden
-                ${isHovered
-                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-105 transform'
-                  : 'bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-600'
+                ${
+                  isHovered
+                    ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-500/30 scale-105 transform"
+                    : "bg-slate-100 text-slate-700 hover:bg-blue-50 hover:text-blue-600"
                 }
                 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent 
                 before:translate-x-[-100%] before:transition-transform before:duration-700
-                ${isHovered ? 'before:translate-x-[100%]' : ''}
+                ${isHovered ? "before:translate-x-[100%]" : ""}
               `}
             >
-              <Eye size={14} className={isHovered ? 'animate-bounce' : ''} />
+              <Eye size={14} className={isHovered ? "animate-bounce" : ""} />
               <span>View Details</span>
             </button>
           </div>
@@ -139,7 +142,10 @@ export default function ProductCard({ product }: { product: Product }) {
       </div>
 
       {showModal && (
-        <ProductModal product={product} onClose={() => setShowModal(false)} />
+        <ProductModal
+          productGroup={{ selected: product, variants }}
+          onClose={() => setShowModal(false)}
+        />
       )}
 
       <style jsx>{`

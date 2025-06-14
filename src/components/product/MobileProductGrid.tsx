@@ -14,67 +14,86 @@ type Product = {
   stockQuantity: number;
 };
 
+type ApiProduct = {
+  product_code: string;
+  productVarient_code: string;
+  product_name: string;
+  size: string;
+  barcode: string;
+  shop_id: string;
+  mCategory_code: string;
+  sCategory_code: string;
+  product_description: string;
+  image_url: string;
+  selling_price: number;
+  total_quantity: number;
+  quantity_type: string | null;
+  discount_percentage: number;
+  is_discount_active: boolean;
+  discountSellingPrice: number;
+};
+
+type ProductGroup = {
+  selected: Product;
+  variants: Product[];
+};
+
 export default function MobileProductGrid() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [productGroups, setProductGroups] = useState<ProductGroup[]>([]);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    const dummyData: Product[] = [
-      {
-        id: "1",
-        name: "Wireless Headphones",
-        description: "High-quality sound with noise cancellation.",
-        size: "Standard",
-        price: 12999,
-        image: "/assets/images/headphones.webp",
-        stockStatus: "In Stock",
-        stockQuantity: 12,
-      },
-      {
-        id: "2",
-        name: "Smartwatch",
-        description: "Track fitness and receive notifications.",
-        size: "Universal",
-        price: 8999,
-        image: "/assets/images/smartwatch.jpg",
-        stockStatus: "In Stock",
-        stockQuantity: 5,
-      },
-      {
-        id: "3",
-        name: "Bluetooth Speaker",
-        description: "Portable speaker with rich bass.",
-        size: "Medium",
-        price: 5999,
-        image: "/assets/images/speaker.jpg",
-        stockStatus: "In Stock",
-        stockQuantity: 8,
-      },
-      {
-        id: "4",
-        name: "Gaming Mouse",
-        description: "Precision mouse with RGB lighting.",
-        size: "Compact",
-        price: 3499,
-        image: "/assets/images/mouse.jpg",
-        stockStatus: "In Stock",
-        stockQuantity: 4,
-      },
-    ];
-    setProducts(dummyData);
+    async function fetchProducts() {
+      try {
+        const res = await fetch("https://plaza.verveautomation.com/api/auth/GetAllProducts");
+        const data = await res.json();
+
+        const grouped = new Map<string, ApiProduct[]>();
+
+        (data.formattedProducts || []).forEach((item: ApiProduct) => {
+          const group = grouped.get(item.product_code) || [];
+          group.push(item);
+          grouped.set(item.product_code, group);
+        });
+
+        const formattedGroups: ProductGroup[] = Array.from(grouped.values()).map((variants) => {
+          const productVariants: Product[] = variants.map((item) => ({
+            id: item.productVarient_code,
+            name: item.product_name,
+            description: item.product_description,
+            size: item.size,
+            price: item.selling_price,
+            image: item.image_url || "/assets/images/default.jpg",
+            stockStatus: item.total_quantity > 0 ? "In Stock" : "Out of Stock",
+            stockQuantity: item.total_quantity,
+          }));
+
+          return {
+            selected: productVariants[0],
+            variants: productVariants,
+          };
+        });
+
+        setProductGroups(formattedGroups);
+      } catch (err) {
+        console.error("Failed to fetch mobile products:", err);
+      }
+    }
+
+    fetchProducts();
   }, []);
 
-  const visibleProducts = showAll ? products : products.slice(0, 12);
+  const visibleGroups = showAll ? productGroups : productGroups.slice(0, 12);
 
   return (
     <section className="block md:hidden px-2 py-4">
       <div className="grid grid-cols-3 gap-2">
-        {visibleProducts.map((product) => (
-          <MobileProductCard key={product.id} product={product} />
+        {visibleGroups.map((group) => (
+          <MobileProductCard key={group.selected.id} productGroup={group} />
         ))}
       </div>
 
-      {!showAll && products.length > 12 && (
+      {!showAll && productGroups.length > 12 && (
         <div className="flex justify-center mt-4">
           <button
             onClick={() => setShowAll(true)}

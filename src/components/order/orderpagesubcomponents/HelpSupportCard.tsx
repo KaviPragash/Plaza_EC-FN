@@ -6,15 +6,18 @@ import { HelpCircle, Phone, ArrowLeft, MessageCircle, Zap } from "lucide-react";
 const faqs = [
   {
     question: "How can I track my package?",
-    answer: "You can track your package using the tracking link sent to your email or by visiting the 'My Orders' section in your account.",
+    answer:
+      "You can track your package using the tracking link sent to your email or by visiting the 'My Orders' section in your account.",
   },
   {
     question: "Can I modify my order?",
-    answer: "Orders can be modified within 30 minutes of placement. Visit 'My Orders' and select the relevant order to edit.",
+    answer:
+      "Orders can be modified within 30 minutes of placement. Visit 'My Orders' and select the relevant order to edit.",
   },
   {
     question: "What's your return policy?",
-    answer: "We accept returns within 14 days of delivery. Please ensure items are unused and in original packaging.",
+    answer:
+      "We accept returns within 14 days of delivery. Please ensure items are unused and in original packaging.",
   },
 ];
 
@@ -25,7 +28,7 @@ export default function HelpSupportCard() {
     <div className="bg-gradient-to-br from-white via-blue-50/30 to-purple-50/20 rounded-2xl shadow-xl border border-blue-100/50 p-4 md:p-6 backdrop-blur-sm relative overflow-hidden">
       <div className="absolute -top-8 -right-8 w-16 h-16 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-xl"></div>
       <div className="absolute -bottom-4 -left-4 w-12 h-12 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-lg"></div>
-      
+
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-6">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2.5 rounded-xl shadow-lg">
@@ -36,7 +39,6 @@ export default function HelpSupportCard() {
               Need Help?
             </h3>
             <p className="text-xs text-gray-500">We&rsquo;re here to assist you</p>
-
           </div>
         </div>
 
@@ -50,13 +52,13 @@ export default function HelpSupportCard() {
               </div>
               <div className="flex-1">
                 <p className="font-semibold text-white text-sm md:text-base">Customer Support</p>
-                <p className="text-blue-100 text-xs md:text-sm flex items-center gap-1">
+                <div className="text-blue-100 text-xs md:text-sm flex items-center gap-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  Available 24/7
-                </p>
+                  <span>Available 24/7</span>
+                </div>
               </div>
-              <a 
-                href="tel:+944123456789" 
+              <a
+                href="tel:+944123456789"
                 className="bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg text-white text-sm font-medium hover:bg-white/30 transition-colors duration-200 border border-white/20"
               >
                 Call Now
@@ -89,7 +91,9 @@ export default function HelpSupportCard() {
             <>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                <p className="font-semibold text-gray-800 text-sm md:text-base">Frequently Asked Questions</p>
+                <p className="font-semibold text-gray-800 text-sm md:text-base">
+                  Frequently Asked Questions
+                </p>
               </div>
               <div className="space-y-2">
                 {faqs.map((faq, index) => (
@@ -100,9 +104,9 @@ export default function HelpSupportCard() {
                   >
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full group-hover:scale-125 transition-transform duration-200"></div>
-                      <p className="text-sm md:text-base text-gray-700 group-hover:text-gray-800 font-medium">
+                      <span className="text-sm md:text-base text-gray-700 group-hover:text-gray-800 font-medium">
                         {faq.question}
-                      </p>
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -117,7 +121,7 @@ export default function HelpSupportCard() {
                 <ArrowLeft size={16} className="group-hover:-translate-x-0.5 transition-transform duration-200" />
                 <span className="font-medium">Back to FAQs</span>
               </button>
-              
+
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-4 border-l-4 border-gradient-to-b border-blue-500">
                 <p className="font-bold text-gray-800 mb-3 text-sm md:text-base">
                   {faqs[selectedFAQ].question}

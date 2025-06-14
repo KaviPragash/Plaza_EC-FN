@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import ProductModal from "../product/ProductModal"; 
+import ProductModal from "../product/ProductModal";
 
 type Product = {
   id: string;
@@ -38,7 +38,10 @@ export default function TrendingCard({ product }: { product: Product }) {
       </div>
 
       {showModal && (
-        <ProductModal product={product} onClose={() => setShowModal(false)} />
+        <ProductModal
+          productGroup={{ selected: product, variants: [product] }}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </>
   );

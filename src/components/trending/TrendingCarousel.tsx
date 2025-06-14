@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import ProductCard from "../product/ProductCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-type Product = {
+export type Product = {
   id: string;
   name: string;
   image: string;
@@ -15,7 +15,12 @@ type Product = {
   stockQuantity: number;
 };
 
-export default function TrendingCarousel({ products }: { products: Product[] }) {
+export type ProductGroup = {
+  selected: Product;
+  variants: Product[];
+};
+
+export default function TrendingCarousel({ products }: { products: ProductGroup[] }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -66,7 +71,7 @@ export default function TrendingCarousel({ products }: { products: Product[] }) 
               Trending Products
             </h2>
             <p className="text-gray-600 text-sm mt-1">
-              Hot picks that everyone&#39;s talking about
+              Hot picks that everyone&apos;s talking about
             </p>
           </div>
 
@@ -94,19 +99,19 @@ export default function TrendingCarousel({ products }: { products: Product[] }) 
             <div
               ref={scrollRef}
               className="flex gap-3 overflow-x-auto scrollbar-hide scroll-smooth"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
-              {products.map((product, index) => (
+              {products.map((group, index) => (
                 <div
-                  key={product.id}
+                  key={group.selected.id}
                   ref={index === 0 ? cardRef : null}
                   className="flex-none w-36 sm:w-40 md:w-44 transform hover:scale-105 transition-all duration-300"
                   style={{
                     animationDelay: `${index * 100}ms`,
-                    animation: 'slideInRight 0.6s ease-out forwards'
+                    animation: "slideInRight 0.6s ease-out forwards",
                   }}
                 >
-                  <ProductCard product={product} />
+                  <ProductCard productGroup={group} />
                 </div>
               ))}
             </div>

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import QuantitySelector from "./QuantitySelector";
-import { useCart } from "@/contexts/CartContext";
 import { ShoppingCart, X } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
+import QuantitySelector from "./QuantitySelector";
 
 type Product = {
   id: string;
@@ -17,21 +17,25 @@ type Product = {
   stockQuantity: number;
 };
 
-export default function ProductModal({
+type ProductGroup = {
+  selected: Product;
+  variants: Product[];
+};
+
+export default function MobileProductModal({
   productGroup,
   onClose,
 }: {
-  productGroup: {
-    selected: Product;
-    variants: Product[];
-  };
+  productGroup: ProductGroup;
   onClose: () => void;
 }) {
   const [quantity, setQuantity] = useState(1);
-  const [selectedVariant, setSelectedVariant] = useState<Product>(productGroup.selected);
+  const [selectedVariant, setSelectedVariant] = useState<Product>(
+    productGroup.selected
+  );
   const [isMounted, setIsMounted] = useState(false);
   const flyRef = useRef<HTMLImageElement | null>(null);
-  const { addToCart, cartIconRefDesktop, cartIconRefMobile } = useCart();
+  const { addToCart, cartIconRefMobile, cartIconRefDesktop } = useCart();
 
   useEffect(() => {
     setIsMounted(true);
@@ -41,41 +45,44 @@ export default function ProductModal({
     };
   }, []);
 
+  const increase = () => {
+    if (quantity < selectedVariant.stockQuantity) {
+      setQuantity((prev) => prev + 1);
+    }
+  };
+
+  const decrease = () => {
+    if (quantity > 1) {
+      setQuantity((prev) => prev - 1);
+    }
+  };
+
   const handleVariantChange = (variant: Product) => {
     setSelectedVariant(variant);
     setQuantity(1);
   };
 
-  const increase = () => {
-    if (quantity < selectedVariant.stockQuantity) setQuantity((q) => q + 1);
-  };
-
-  const decrease = () => {
-    if (quantity > 1) setQuantity((q) => q - 1);
-  };
-
-  const handleCompleteOrder = () => {
+  const handleAddToCart = () => {
     const isMobile = window.innerWidth < 768;
-    const cartIcon = isMobile ? cartIconRefMobile.current : cartIconRefDesktop.current;
+    const cartIcon = isMobile
+      ? cartIconRefMobile.current
+      : cartIconRefDesktop.current;
 
     if (flyRef.current && cartIcon) {
       const imgRect = flyRef.current.getBoundingClientRect();
       const cartRect = cartIcon.getBoundingClientRect();
+
       const cloneImg = flyRef.current.cloneNode(true) as HTMLImageElement;
-
-      cloneImg.style.cssText = `
-        position: absolute;
-        left: ${imgRect.left + window.scrollX}px;
-        top: ${imgRect.top + window.scrollY}px;
-        width: ${imgRect.width}px;
-        z-index: 1000;
-        transition: all 0.7s ease-in-out;
-      `;
-
+      cloneImg.style.position = "absolute";
+      cloneImg.style.left = `${imgRect.left + window.scrollX}px`;
+      cloneImg.style.top = `${imgRect.top + window.scrollY}px`;
+      cloneImg.style.width = `${imgRect.width}px`;
+      cloneImg.style.zIndex = "1000";
+      cloneImg.style.transition = "all 0.7s ease-in-out";
       document.body.appendChild(cloneImg);
 
       const offsetX = cartRect.left - imgRect.left + window.scrollX;
-      const offsetY = cartRect.top - imgRect.top;
+      const offsetY = cartRect.top - imgRect.top + window.scrollY;
 
       setTimeout(() => {
         cloneImg.style.transform = `translate(${offsetX}px, ${offsetY}px) scale(0.2)`;
@@ -96,12 +103,12 @@ export default function ProductModal({
     }
   };
 
+  if (!isMounted) return null;
+
   const formattedPrice = new Intl.NumberFormat("en-LK", {
     style: "decimal",
     minimumFractionDigits: 2,
   }).format(selectedVariant.price);
-
-  if (!isMounted) return null;
 
   return createPortal(
     <div
@@ -112,7 +119,6 @@ export default function ProductModal({
         className="relative bg-white rounded-xl shadow-xl w-full max-w-sm p-6 mx-4"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-500 hover:text-gray-700 transition"
@@ -120,7 +126,6 @@ export default function ProductModal({
           <X size={18} />
         </button>
 
-        {/* Product Image */}
         <div className="flex justify-center mb-4">
           <img
             ref={flyRef}
@@ -130,13 +135,13 @@ export default function ProductModal({
           />
         </div>
 
-        {/* Name + Desc */}
-        <h2 className="text-lg font-semibold text-center mb-1">{selectedVariant.name}</h2>
+        <h2 className="text-lg font-semibold text-center mb-1">
+          {selectedVariant.name}
+        </h2>
         <p className="text-sm text-center text-gray-500 mb-4">
           {selectedVariant.description}
         </p>
 
-        {/* Variant Selector */}
         <div className="flex justify-center flex-wrap gap-2 text-sm text-gray-600 mb-3">
           {productGroup.variants.map((variant) => (
             <button
@@ -153,7 +158,6 @@ export default function ProductModal({
           ))}
         </div>
 
-        {/* Stock Info */}
         <div className="flex justify-center gap-2 text-sm text-gray-600 mb-2">
           <span className="bg-gray-100 px-2 py-1 rounded-full">
             Size: {selectedVariant.size}
@@ -171,21 +175,18 @@ export default function ProductModal({
           </span>
         </div>
 
-        {/* Price */}
         <div className="text-center text-xl font-bold text-blue-600 mb-4">
           LKR {formattedPrice}
         </div>
 
-        {/* Quantity Selector */}
         <QuantitySelector
           quantity={quantity}
           increase={increase}
           decrease={decrease}
         />
 
-        {/* Add to Cart */}
         <button
-          onClick={handleCompleteOrder}
+          onClick={handleAddToCart}
           disabled={selectedVariant.stockQuantity === 0}
           className={`mt-4 w-full py-3 rounded-lg font-semibold text-white transition-all ${
             selectedVariant.stockQuantity > 0
