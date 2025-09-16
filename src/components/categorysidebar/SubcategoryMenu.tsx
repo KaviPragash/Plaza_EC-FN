@@ -15,6 +15,7 @@ interface SubcategoryMenuProps {
   subcategories: string[];
   visible: boolean;
   color: keyof typeof colorClasses;
+  onSubcategoryClick?: (subcategory: string) => void;
 }
 
 // Define colors consistent with DesktopCategorySidebar
@@ -31,6 +32,7 @@ export default function SubcategoryMenu({
   subcategories,
   visible,
   color,
+  onSubcategoryClick,
 }: SubcategoryMenuProps) {
   if (!visible) return null;
 
@@ -45,7 +47,8 @@ export default function SubcategoryMenu({
   // Calculate dynamic width based on number of columns
   const baseWidth = 240;
   const additionalWidth = 200;
-  const totalWidth = baseWidth + (Math.max(0, columns.length - 1) * additionalWidth);
+  const hoverPadding = Math.max(20, columns.length * 12); // Minimum 20px, or 12px per column
+  const totalWidth = baseWidth + (Math.max(0, columns.length - 1) * additionalWidth) + hoverPadding;
 
   return (
     <div className={`bg-white rounded-xl shadow-2xl border ${colorClasses[color].border} p-4 animate-in slide-in-from-left-2 duration-300`} style={{ width: `${totalWidth}px` }}>
@@ -70,6 +73,7 @@ export default function SubcategoryMenu({
                   return (
                     <li
                       key={sub}
+                      onClick={() => onSubcategoryClick?.(sub)}
                       className={`px-3 py-2 rounded-lg cursor-pointer transition-all duration-300 hover:${colorClasses[color].bg} hover:translate-x-1 hover:shadow-md flex items-center justify-between group`}
                       style={{ animationDelay: `${globalIndex * 50}ms` }}
                     >

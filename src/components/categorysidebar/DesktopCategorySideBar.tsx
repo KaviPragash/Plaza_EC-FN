@@ -27,6 +27,10 @@ interface SubCategory {
   };
 }
 
+interface CategorySidebarProps {
+  onSubcategorySelect?: (subcategoryName: string, subcategoryCode: string) => void;
+}
+
 const iconMap: Record<string, JSX.Element> = {
   "Electronics Items": <Smartphone size={18} />,
   "Grocery & Staples": <ShoppingCart size={18} />,
@@ -52,10 +56,13 @@ function CategoryItem({ type, icon }: { type: string; icon: JSX.Element }) {
   );
 }
 
-export default function CategorySidebar() {
+export default function CategorySidebar({ onSubcategorySelect }: CategorySidebarProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategoriesMap, setSubcategoriesMap] = useState<
     Record<string, string[]>
+  >({});
+  const [subcategoryCodeMap, setSubcategoryCodeMap] = useState<
+    Record<string, string>
   >({});
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [submenuStyle, setSubmenuStyle] = useState<React.CSSProperties>({});
@@ -69,20 +76,26 @@ export default function CategorySidebar() {
   const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Handle subcategory click
+  const handleSubcategoryClick = (subcategoryName: string) => {
+    const subcategoryCode = subcategoryCodeMap[subcategoryName];
+    if (subcategoryCode) {
+      onSubcategorySelect?.(subcategoryName, subcategoryCode);
+    }
+  };
+
   // Track scroll position to determine sticky state
   useEffect(() => {
     const handleScroll = () => {
       if (!containerRef.current) return;
       
       const containerRect = containerRef.current.getBoundingClientRect();
-      // Consider it "at page top" when container is more than 200px from viewport top
-      // This accounts for your hero section height
       const shouldBeAtTop = containerRect.top > 200;
-      setIsSticky(!shouldBeAtTop); // Sticky when NOT at top
+      setIsSticky(!shouldBeAtTop);
     };
 
     window.addEventListener('scroll', handleScroll);
-    handleScroll(); // Call once on mount
+    handleScroll();
     
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -110,7 +123,6 @@ export default function CategorySidebar() {
 
         setCategories(catData);
 
-        // assign random colors per category
         const colors: Record<string, string> = {};
         catData.forEach((cat: Category) => {
           colors[cat.mCategory_code] =
@@ -118,18 +130,24 @@ export default function CategorySidebar() {
         });
         setCategoryColors(colors);
 
-        // group subcategories by main category
+        // group subcategories by main category and create code map
         const grouped: Record<string, string[]> = {};
+        const codeMap: Record<string, string> = {};
+        
         for (const sub of subData) {
           const mainCode = sub.MainCategory?.mCategory_code;
           const name = sub.SCategory_name;
-          if (mainCode) {
+          const code = sub.SCategory_code;
+          
+          if (mainCode && name && code) {
             if (!grouped[mainCode]) grouped[mainCode] = [];
             grouped[mainCode].push(name);
+            codeMap[name] = code; // Map subcategory name to code
           }
         }
 
         setSubcategoriesMap(grouped);
+        setSubcategoryCodeMap(codeMap);
         setIsVisible(true);
       } catch (error) {
         console.error("API error:", error);
@@ -145,42 +163,30 @@ export default function CategorySidebar() {
 
   const calculateSubmenuPosition = useCallback((categoryElement: HTMLElement) => {
     const categoryRect = categoryElement.getBoundingClientRect();
-    const containerRect = containerRef.current?.getBoundingClientRect();
     
-    console.log('=== POSITION CALCULATION ===');
-    console.log('Is sticky:', isSticky);
-    console.log('Category top:', categoryRect.top);
-    console.log('Category right:', categoryRect.right);
-    console.log('Container top:', containerRect?.top);
+    // Estimated submenu height (adjust based on typical subcategory count)
+    const estimatedSubmenuHeight = 300;
+    const viewportHeight = window.innerHeight;
     
-    // Check if we're at the initial scroll position (page top)
-    // Use a higher threshold to catch the initial state better
-    const isAtPageTop = containerRect && containerRect.top > 200;
+    // Calculate optimal top position
+    let topPosition = categoryRect.top;
     
-    console.log('Is at page top:', isAtPageTop);
-    
-    if (isAtPageTop) {
-      // Page at top: position submenu beside the sidebar (traditional way)
-      console.log('✅ Using sidebar alignment - beside main categories');
-      return {
-        position: 'fixed' as const,
-        top: `${categoryRect.top}px`,
-        left: `${categoryRect.right + 12}px`,
-        zIndex: 50
-      };
-    } else {
-      // Page scrolled: position submenu directly inline with the category item
-      console.log('❌ Using inline positioning - directly with category');
-      const sidebarWidth = categoryElement.offsetWidth;
-      return {
-        position: 'fixed' as const,
-        top: `${categoryRect.top}px`,
-        left: `${categoryRect.right + 12}px`, // Start from the right edge of category
-        zIndex: 50,
-        width: '280px' // Fixed width for better control
-      };
+    // Check if submenu would be clipped at bottom
+    if (topPosition + estimatedSubmenuHeight > viewportHeight) {
+      // Position submenu higher to fit in viewport
+      topPosition = Math.max(100, viewportHeight - estimatedSubmenuHeight - 20);
     }
-  }, [isSticky]);
+    
+    // Ensure minimum distance from top
+    topPosition = Math.max(100, topPosition);
+    
+    return {
+      position: 'fixed' as const,
+      top: `${topPosition}px`,
+      left: `${categoryRect.right + 12}px`,
+      zIndex: 50
+    };
+  }, []);
 
   const handleMouseEnter = (
     index: number,
@@ -190,7 +196,6 @@ export default function CategorySidebar() {
     setHoveredIndex(index);
     
     const newStyle = calculateSubmenuPosition(e.currentTarget);
-    console.log('Setting submenu style:', newStyle);
     setSubmenuStyle(newStyle);
   };
 
@@ -286,11 +291,6 @@ export default function CategorySidebar() {
         </div>
       </aside>
 
-      {/* Debug info - remove this in production */}
-      <div className="fixed top-4 right-4 bg-black text-white p-2 text-xs rounded z-[999]">
-        Sticky: {isSticky ? 'YES' : 'NO'} | Hovered: {hoveredIndex ?? 'None'}
-      </div>
-
       {hoveredIndex !== null && (
         <div
           style={submenuStyle}
@@ -305,6 +305,7 @@ export default function CategorySidebar() {
             }
             visible={true}
             color={categoryColors[categories[hoveredIndex].mCategory_code] || "blue"}
+            onSubcategoryClick={handleSubcategoryClick}
           />
         </div>
       )}
