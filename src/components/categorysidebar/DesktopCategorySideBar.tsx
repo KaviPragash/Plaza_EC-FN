@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Menu,
   Smartphone,
@@ -64,9 +64,28 @@ export default function CategorySidebar() {
   const [categoryColors, setCategoryColors] = useState<Record<string, string>>(
     {}
   );
+  const [isSticky, setIsSticky] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Track scroll position to determine sticky state
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      // Consider it "at page top" when container is more than 200px from viewport top
+      // This accounts for your hero section height
+      const shouldBeAtTop = containerRect.top > 200;
+      setIsSticky(!shouldBeAtTop); // Sticky when NOT at top
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll(); // Call once on mount
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -124,6 +143,45 @@ export default function CategorySidebar() {
     };
   }, []);
 
+  const calculateSubmenuPosition = useCallback((categoryElement: HTMLElement) => {
+    const categoryRect = categoryElement.getBoundingClientRect();
+    const containerRect = containerRef.current?.getBoundingClientRect();
+    
+    console.log('=== POSITION CALCULATION ===');
+    console.log('Is sticky:', isSticky);
+    console.log('Category top:', categoryRect.top);
+    console.log('Category right:', categoryRect.right);
+    console.log('Container top:', containerRect?.top);
+    
+    // Check if we're at the initial scroll position (page top)
+    // Use a higher threshold to catch the initial state better
+    const isAtPageTop = containerRect && containerRect.top > 200;
+    
+    console.log('Is at page top:', isAtPageTop);
+    
+    if (isAtPageTop) {
+      // Page at top: position submenu beside the sidebar (traditional way)
+      console.log('✅ Using sidebar alignment - beside main categories');
+      return {
+        position: 'fixed' as const,
+        top: `${categoryRect.top}px`,
+        left: `${categoryRect.right + 12}px`,
+        zIndex: 50
+      };
+    } else {
+      // Page scrolled: position submenu directly inline with the category item
+      console.log('❌ Using inline positioning - directly with category');
+      const sidebarWidth = categoryElement.offsetWidth;
+      return {
+        position: 'fixed' as const,
+        top: `${categoryRect.top}px`,
+        left: `${categoryRect.right + 12}px`, // Start from the right edge of category
+        zIndex: 50,
+        width: '280px' // Fixed width for better control
+      };
+    }
+  }, [isSticky]);
+
   const handleMouseEnter = (
     index: number,
     e: React.MouseEvent<HTMLLIElement>
@@ -131,39 +189,9 @@ export default function CategorySidebar() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setHoveredIndex(index);
     
-    const categoryRect = e.currentTarget.getBoundingClientRect();
-    const sidebarRect = containerRef.current?.getBoundingClientRect();
-    const scrollY = window.scrollY;
-    
-    console.log('DEBUGGING:');
-    console.log('- ScrollY:', scrollY);
-    console.log('- Category top:', categoryRect.top);
-    console.log('- Sidebar top:', sidebarRect?.top);
-    console.log('- Window scrollY:', window.scrollY);
-    console.log('- Document scrollTop:', document.documentElement.scrollTop);
-    
-    // Use sidebar position instead of scrollY to determine behavior
-    const isAtPageTop = sidebarRect && sidebarRect.top > 100; // Sidebar is in its normal position
-    
-    if (isAtPageTop) {
-      // Page at top: position submenu next to the category item
-      setSubmenuStyle({
-        position: 'fixed',
-        top: `${categoryRect.top}px`,
-        left: `${categoryRect.right + 8}px`,
-        zIndex: 50
-      });
-      console.log('✅ USING CATEGORY ALIGNMENT - Sidebar top:', sidebarRect.top);
-    } else {
-      // Page scrolled: position submenu at top of viewport
-      setSubmenuStyle({
-        position: 'fixed',
-        top: '20px',
-        left: `${categoryRect.right + 8}px`,
-        zIndex: 50
-      });
-      console.log('❌ USING VIEWPORT TOP - Sidebar top:', sidebarRect?.top);
-    }
+    const newStyle = calculateSubmenuPosition(e.currentTarget);
+    console.log('Setting submenu style:', newStyle);
+    setSubmenuStyle(newStyle);
   };
 
   const handleMouseLeave = () => {
@@ -173,6 +201,17 @@ export default function CategorySidebar() {
   const handleMenuMouseEnter = () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
+
+  // Recalculate position when sticky state changes and we have a hovered item
+  useEffect(() => {
+    if (hoveredIndex !== null) {
+      const categoryElement = document.querySelector(`[data-category-index="${hoveredIndex}"]`) as HTMLElement;
+      if (categoryElement) {
+        const newStyle = calculateSubmenuPosition(categoryElement);
+        setSubmenuStyle(newStyle);
+      }
+    }
+  }, [isSticky, hoveredIndex, calculateSubmenuPosition]);
 
   const visibleCategories = expanded ? categories : categories.slice(0, 5);
 
@@ -204,6 +243,7 @@ export default function CategorySidebar() {
           {visibleCategories.map((cat, index) => (
             <li
               key={cat.mCategory_code}
+              data-category-index={index}
               onMouseEnter={(e) => handleMouseEnter(index, e)}
               onMouseLeave={handleMouseLeave}
               className="relative block transition-all duration-300 animate-in slide-in-from-left-4 hover:translate-x-1"
@@ -245,6 +285,11 @@ export default function CategorySidebar() {
           </div>
         </div>
       </aside>
+
+      {/* Debug info - remove this in production */}
+      <div className="fixed top-4 right-4 bg-black text-white p-2 text-xs rounded z-[999]">
+        Sticky: {isSticky ? 'YES' : 'NO'} | Hovered: {hoveredIndex ?? 'None'}
+      </div>
 
       {hoveredIndex !== null && (
         <div
