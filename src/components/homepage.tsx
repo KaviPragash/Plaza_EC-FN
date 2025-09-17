@@ -9,7 +9,7 @@ import TrendingProducts from "@/components/trending/trendingProducts";
 import { useSubcategoryFilter } from "@/contexts/SubcategoryFilterContext";
 
 export default function HomePage() {
-  const { selectedSubcategory, selectedSubcategoryCode, setFilter, clearFilter } = useSubcategoryFilter();
+  const { selectedSubcategory, selectedSubcategoryCode, clearFilter } = useSubcategoryFilter();
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
@@ -41,11 +41,9 @@ export default function HomePage() {
       <div className="px-4 md:px-6 py-6">
         <div className="max-w-[1440px] mx-auto">
           <div className="flex flex-col md:flex-row md:gap-[10px]">
-            {/* Sidebar - hidden on mobile */}
+            {/* Sidebar - hidden on mobile - NO PROPS NEEDED */}
             <div className="hidden md:block md:w-[250px] flex-shrink-0">
-              <CategorySidebar 
-                onSubcategorySelect={setFilter}
-              />
+              <CategorySidebar />
             </div>
 
             {/* Product Grid */}

@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import type { JSX } from "react";
 import SubcategoryMenu from "./SubcategoryMenu";
+import { useSubcategoryFilter } from "@/contexts/SubcategoryFilterContext";
 
 interface Category {
   mCategory_code: string;
@@ -25,10 +26,6 @@ interface SubCategory {
     mCategory_code: string;
     mCategory_name: string;
   };
-}
-
-interface CategorySidebarProps {
-  onSubcategorySelect?: (subcategoryName: string, subcategoryCode: string) => void;
 }
 
 const iconMap: Record<string, JSX.Element> = {
@@ -56,7 +53,7 @@ function CategoryItem({ type, icon }: { type: string; icon: JSX.Element }) {
   );
 }
 
-export default function CategorySidebar({ onSubcategorySelect }: CategorySidebarProps) {
+export default function CategorySidebar() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategoriesMap, setSubcategoriesMap] = useState<
     Record<string, string[]>
@@ -76,11 +73,14 @@ export default function CategorySidebar({ onSubcategorySelect }: CategorySidebar
   const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Handle subcategory click
+  // Use the context directly
+  const { setFilter } = useSubcategoryFilter();
+
+  // Handle subcategory click using context
   const handleSubcategoryClick = (subcategoryName: string) => {
     const subcategoryCode = subcategoryCodeMap[subcategoryName];
     if (subcategoryCode) {
-      onSubcategorySelect?.(subcategoryName, subcategoryCode);
+      setFilter(subcategoryName, subcategoryCode);
     }
   };
 
