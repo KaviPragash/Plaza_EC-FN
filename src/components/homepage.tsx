@@ -1,34 +1,15 @@
 "use client";
 
-import { useState } from "react";
 import HeroBanner from "@/components/hero/heroBanner";
 import CategorySidebar from "@/components/categorysidebar/DesktopCategorySideBar";
 import ProductGrid from "@/components/product/productGrid";
 import MobileProductGrid from "@/components/product/MobileProductGrid";
 import PromotionalBanner from "@/components/promotional/PromotionalBanner";
 import TrendingProducts from "@/components/trending/trendingProducts";
+import { useSubcategoryFilter } from "@/contexts/SubcategoryFilterContext";
 
 export default function HomePage() {
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
-  const [selectedSubcategoryCode, setSelectedSubcategoryCode] = useState<string | null>(null);
-
-  const handleSubcategorySelect = (subcategoryName: string, subcategoryCode: string) => {
-    setSelectedSubcategory(subcategoryName);
-    setSelectedSubcategoryCode(subcategoryCode);
-    
-    // Scroll to products section
-    setTimeout(() => {
-      document.getElementById("products-section")?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 100);
-  };
-
-  const handleClearFilter = () => {
-    setSelectedSubcategory(null);
-    setSelectedSubcategoryCode(null);
-  };
+  const { selectedSubcategory, selectedSubcategoryCode, setFilter, clearFilter } = useSubcategoryFilter();
 
   return (
     <div className="min-h-screen bg-white text-gray-800">
@@ -45,7 +26,7 @@ export default function HomePage() {
                   <span className="font-medium">Filtered by:</span> {selectedSubcategory}
                 </p>
                 <button
-                  onClick={handleClearFilter}
+                  onClick={clearFilter}
                   className="text-blue-600 hover:text-blue-800 text-sm font-medium underline"
                 >
                   Clear Filter
@@ -63,7 +44,7 @@ export default function HomePage() {
             {/* Sidebar - hidden on mobile */}
             <div className="hidden md:block md:w-[250px] flex-shrink-0">
               <CategorySidebar 
-                onSubcategorySelect={handleSubcategorySelect}
+                onSubcategorySelect={setFilter}
               />
             </div>
 
@@ -71,7 +52,10 @@ export default function HomePage() {
             <div className="flex-grow">
               {/* Mobile View */}
               <div className="block md:hidden">
-                <MobileProductGrid />
+                <MobileProductGrid 
+                  selectedSubcategory={selectedSubcategory}
+                  selectedSubcategoryCode={selectedSubcategoryCode}
+                />
               </div>
 
               {/* Desktop View */}
