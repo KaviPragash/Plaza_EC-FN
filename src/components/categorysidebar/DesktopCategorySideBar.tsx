@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Menu,
   Smartphone,
@@ -8,9 +8,11 @@ import {
   CupSoda,
   Heart,
   Folder,
-  ChevronRight
+  ChevronRight,
 } from "lucide-react";
 import type { JSX } from "react";
+import SubcategoryMenu from "./SubcategoryMenu";
+import { useSubcategoryFilter } from "@/contexts/SubcategoryFilterContext";
 
 interface Category {
   mCategory_code: string;
@@ -31,7 +33,7 @@ const iconMap: Record<string, JSX.Element> = {
   "Grocery & Staples": <ShoppingCart size={18} />,
   "Beverages": <CupSoda size={18} />,
   "Health & Beauty": <Heart size={18} />,
-  default: <Folder size={18} />
+  default: <Folder size={18} />,
 };
 
 const colorList = ["blue", "purple", "green", "orange", "pink"];
@@ -51,78 +53,101 @@ function CategoryItem({ type, icon }: { type: string; icon: JSX.Element }) {
   );
 }
 
-function SubcategoryMenu({
-  category,
-  subcategories,
-  visible,
-  color
-}: {
-  category: string;
-  subcategories: string[];
-  visible: boolean;
-  color: string;
-}) {
-  if (!visible) return null;
-
-  return (
-    <div className="w-60 h-full bg-white rounded-2xl shadow-lg p-4 border border-gray-200">
-      <h3 className={`text-${color}-600 font-semibold mb-2`}>{category}</h3>
-      <ul className="space-y-1">
-        {subcategories.map((sub, idx) => (
-          <li key={idx} className="text-sm text-gray-600 hover:text-black transition">
-            {sub}
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export default function CategorySidebar() {
   const [categories, setCategories] = useState<Category[]>([]);
-  const [subcategoriesMap, setSubcategoriesMap] = useState<Record<string, string[]>>({});
+  const [subcategoriesMap, setSubcategoriesMap] = useState<
+    Record<string, string[]>
+  >({});
+  const [subcategoryCodeMap, setSubcategoryCodeMap] = useState<
+    Record<string, string>
+  >({});
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [submenuStyle, setSubmenuStyle] = useState<React.CSSProperties>({});
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [expanded, setExpanded] = useState<boolean>(false);
-  const [categoryColors, setCategoryColors] = useState<Record<string, string>>({});
+  const [categoryColors, setCategoryColors] = useState<Record<string, string>>(
+    {}
+  );
+  const [isSticky, setIsSticky] = useState<boolean>(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Use the context directly
+  const { setFilter } = useSubcategoryFilter();
+
+  // Handle subcategory click using context
+  const handleSubcategoryClick = (subcategoryName: string) => {
+    const subcategoryCode = subcategoryCodeMap[subcategoryName];
+    if (subcategoryCode) {
+      setFilter(subcategoryName, subcategoryCode);
+    }
+  };
+
+  // Track scroll position to determine sticky state
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!containerRef.current) return;
+      
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const shouldBeAtTop = containerRect.top > 200;
+      setIsSticky(!shouldBeAtTop);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   useEffect(() => {
     async function fetchData() {
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL || "https://plaza.verveautomation.com/api/auth";
+        const base =
+          process.env.NEXT_PUBLIC_API_BASE_URL ||
+          "https://plaza.verveautomation.com/api/auth";
         const [catRes, subRes] = await Promise.all([
           fetch(`${base}/getallMCategory`),
-          fetch(`${base}/getallSubCategory`)
+          fetch(`${base}/getallSubCategory`),
         ]);
 
         const catJson = await catRes.json();
         const subJson = await subRes.json();
 
-        const catData: Category[] = Array.isArray(catJson) ? catJson : catJson.data || [];
-        const subData: SubCategory[] = Array.isArray(subJson) ? subJson : subJson.data || [];
+        const catData: Category[] = Array.isArray(catJson)
+          ? catJson
+          : catJson.data || [];
+        const subData: SubCategory[] = Array.isArray(subJson)
+          ? subJson
+          : subJson.data || [];
 
         setCategories(catData);
 
         const colors: Record<string, string> = {};
         catData.forEach((cat: Category) => {
-          colors[cat.mCategory_code] = colorList[Math.floor(Math.random() * colorList.length)];
+          colors[cat.mCategory_code] =
+            colorList[Math.floor(Math.random() * colorList.length)];
         });
         setCategoryColors(colors);
 
+        // group subcategories by main category and create code map
         const grouped: Record<string, string[]> = {};
+        const codeMap: Record<string, string> = {};
+        
         for (const sub of subData) {
           const mainCode = sub.MainCategory?.mCategory_code;
           const name = sub.SCategory_name;
-          if (mainCode) {
+          const code = sub.SCategory_code;
+          
+          if (mainCode && name && code) {
             if (!grouped[mainCode]) grouped[mainCode] = [];
             grouped[mainCode].push(name);
+            codeMap[name] = code; // Map subcategory name to code
           }
         }
 
         setSubcategoriesMap(grouped);
+        setSubcategoryCodeMap(codeMap);
         setIsVisible(true);
       } catch (error) {
         console.error("API error:", error);
@@ -136,9 +161,42 @@ export default function CategorySidebar() {
     };
   }, []);
 
-  const handleMouseEnter = (index: number) => {
+  const calculateSubmenuPosition = useCallback((categoryElement: HTMLElement) => {
+    const categoryRect = categoryElement.getBoundingClientRect();
+    
+    // Estimated submenu height (adjust based on typical subcategory count)
+    const estimatedSubmenuHeight = 300;
+    const viewportHeight = window.innerHeight;
+    
+    // Calculate optimal top position
+    let topPosition = categoryRect.top;
+    
+    // Check if submenu would be clipped at bottom
+    if (topPosition + estimatedSubmenuHeight > viewportHeight) {
+      // Position submenu higher to fit in viewport
+      topPosition = Math.max(100, viewportHeight - estimatedSubmenuHeight - 20);
+    }
+    
+    // Ensure minimum distance from top
+    topPosition = Math.max(100, topPosition);
+    
+    return {
+      position: 'fixed' as const,
+      top: `${topPosition}px`,
+      left: `${categoryRect.right + 12}px`,
+      zIndex: 50
+    };
+  }, []);
+
+  const handleMouseEnter = (
+    index: number,
+    e: React.MouseEvent<HTMLLIElement>
+  ) => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setHoveredIndex(index);
+    
+    const newStyle = calculateSubmenuPosition(e.currentTarget);
+    setSubmenuStyle(newStyle);
   };
 
   const handleMouseLeave = () => {
@@ -149,12 +207,25 @@ export default function CategorySidebar() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   };
 
+  // Recalculate position when sticky state changes and we have a hovered item
+  useEffect(() => {
+    if (hoveredIndex !== null) {
+      const categoryElement = document.querySelector(`[data-category-index="${hoveredIndex}"]`) as HTMLElement;
+      if (categoryElement) {
+        const newStyle = calculateSubmenuPosition(categoryElement);
+        setSubmenuStyle(newStyle);
+      }
+    }
+  }, [isSticky, hoveredIndex, calculateSubmenuPosition]);
+
   const visibleCategories = expanded ? categories : categories.slice(0, 5);
 
   return (
     <div className="relative flex h-full py-8" ref={containerRef}>
       <aside
-        className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}
+        className={`hidden md:block w-full bg-gradient-to-br from-white via-gray-50 to-blue-50/30 p-6 border border-gray-200 shadow-xl rounded-2xl flex flex-col backdrop-blur-sm transition-all duration-1000 hover:shadow-2xl ${
+          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        }`}
         style={{ height: !expanded ? "620px" : "auto" }}
       >
         <div className="text-center mb-8">
@@ -169,11 +240,16 @@ export default function CategorySidebar() {
           <div className="w-16 h-0.5 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full" />
         </div>
 
-        <ul className={`space-y-3 ${expanded ? "flex-grow" : "flex-grow overflow-hidden"}`}>
+        <ul
+          className={`space-y-3 ${
+            expanded ? "flex-grow" : "flex-grow overflow-hidden"
+          }`}
+        >
           {visibleCategories.map((cat, index) => (
             <li
               key={cat.mCategory_code}
-              onMouseEnter={() => handleMouseEnter(index)}
+              data-category-index={index}
+              onMouseEnter={(e) => handleMouseEnter(index, e)}
               onMouseLeave={handleMouseLeave}
               className="relative block transition-all duration-300 animate-in slide-in-from-left-4 hover:translate-x-1"
               style={{ animationDelay: `${index * 150}ms` }}
@@ -217,15 +293,19 @@ export default function CategorySidebar() {
 
       {hoveredIndex !== null && (
         <div
-          className="absolute left-full top-0 z-20 h-full ml-2 hidden md:block"
+          style={submenuStyle}
           onMouseEnter={handleMenuMouseEnter}
           onMouseLeave={handleMouseLeave}
+          className="hidden md:block"
         >
           <SubcategoryMenu
             category={categories[hoveredIndex].mCategory_name}
-            subcategories={subcategoriesMap[categories[hoveredIndex].mCategory_code] || []}
+            subcategories={
+              subcategoriesMap[categories[hoveredIndex].mCategory_code] || []
+            }
             visible={true}
             color={categoryColors[categories[hoveredIndex].mCategory_code] || "blue"}
+            onSubcategoryClick={handleSubcategoryClick}
           />
         </div>
       )}

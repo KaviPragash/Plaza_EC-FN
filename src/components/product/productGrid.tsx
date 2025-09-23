@@ -13,6 +13,7 @@ type Product = {
   image: string;
   stockStatus: string;
   stockQuantity: number;
+  subcategoryCode?: string;
 };
 
 type ApiProduct = {
@@ -39,8 +40,14 @@ type ProductGroup = {
   variants: Product[];
 };
 
-export default function ProductGrid() {
-  const [productGroups, setProductGroups] = useState<ProductGroup[]>([]);
+interface ProductGridProps {
+  selectedSubcategory?: string | null;
+  selectedSubcategoryCode?: string | null;
+}
+
+export default function ProductGrid({ selectedSubcategory, selectedSubcategoryCode }: ProductGridProps) {
+  const [allProductGroups, setAllProductGroups] = useState<ProductGroup[]>([]);
+  const [filteredProductGroups, setFilteredProductGroups] = useState<ProductGroup[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const productsPerPage = 10;
@@ -68,6 +75,7 @@ export default function ProductGrid() {
             image: item.image_url || "/assets/images/default.jpg",
             stockStatus: item.total_quantity > 0 ? "In Stock" : "Out of Stock",
             stockQuantity: item.total_quantity,
+            subcategoryCode: item.sCategory_code,
           }));
 
           return {
@@ -76,7 +84,8 @@ export default function ProductGrid() {
           };
         });
 
-        setProductGroups(formatted);
+        setAllProductGroups(formatted);
+        setFilteredProductGroups(formatted);
       } catch (err) {
         console.error("Failed to fetch products:", err);
       } finally {
@@ -87,9 +96,22 @@ export default function ProductGrid() {
     fetchProducts();
   }, []);
 
+  // Filter products when selectedSubcategoryCode changes
+  useEffect(() => {
+    if (!selectedSubcategoryCode) {
+      setFilteredProductGroups(allProductGroups);
+    } else {
+      const filtered = allProductGroups.filter(group => 
+        group.selected.subcategoryCode === selectedSubcategoryCode
+      );
+      setFilteredProductGroups(filtered);
+    }
+    setCurrentPage(1); // Reset to first page when filtering
+  }, [selectedSubcategoryCode, allProductGroups]);
+
   const startIndex = (currentPage - 1) * productsPerPage;
-  const paginated = productGroups.slice(startIndex, startIndex + productsPerPage);
-  const totalPages = Math.ceil(productGroups.length / productsPerPage);
+  const paginated = filteredProductGroups.slice(startIndex, startIndex + productsPerPage);
+  const totalPages = Math.ceil(filteredProductGroups.length / productsPerPage);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -115,6 +137,23 @@ export default function ProductGrid() {
       {isActive && <div className="absolute inset-0 bg-white/20 rounded-lg animate-pulse"></div>}
     </button>
   );
+
+  const getDisplayTitle = () => {
+    if (selectedSubcategory) {
+      return `${selectedSubcategory} Products`;
+    }
+    return "Our Products";
+  };
+
+  const getDisplayDescription = () => {
+    if (selectedSubcategory) {
+      if (filteredProductGroups.length === 0) {
+        return `No products available in ${selectedSubcategory}`;
+      }
+      return `Discover ${filteredProductGroups.length} products in ${selectedSubcategory}`;
+    }
+    return `Discover our amazing collection of ${filteredProductGroups.length} premium products`;
+  };
 
   if (isLoading) {
     return (
@@ -144,10 +183,10 @@ export default function ProductGrid() {
               <div className="absolute inset-0 bg-black/10"></div>
               <div className="relative">
                 <h2 className="text-2xl md:text-3xl font-bold text-white text-center mb-2">
-                  Our Products
+                  {getDisplayTitle()}
                 </h2>
                 <p className="text-blue-100 text-center text-sm md:text-base">
-                  Discover our amazing collection of {productGroups.length} premium products
+                  {getDisplayDescription()}
                 </p>
               </div>
               <div className="absolute top-4 left-4 w-16 h-16 bg-white/10 rounded-full blur-xl"></div>
@@ -155,64 +194,80 @@ export default function ProductGrid() {
             </div>
 
             <div className="p-4 md:p-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
-                {paginated.map((group, index) => (
-                  <div
-                    key={group.selected.id}
-                    className="transform transition-all duration-300 hover:scale-102"
-                    style={{
-                      animationDelay: `${index * 50}ms`,
-                      animation: "fadeInUp 0.6s ease-out forwards",
-                    }}
-                  >
-                    <ProductCard productGroup={group} />
-                  </div>
-                ))}
-              </div>
-
-              {totalPages > 1 && (
-                <div className="mt-10 pt-6 border-t border-gray-100">
-                  <div className="flex flex-col items-center gap-4">
-                    <div className="text-sm text-gray-600">
-                      Showing {startIndex + 1}-
-                      {Math.min(startIndex + productsPerPage, productGroups.length)} of{" "}
-                      {productGroups.length} products
-                    </div>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      <button
-                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                        disabled={currentPage === 1}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                          currentPage === 1
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        Previous
-                      </button>
-                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) =>
-                        renderPaginationButton(page, currentPage === page)
-                      )}
-                      <button
-                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                        disabled={currentPage === totalPages}
-                        className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
-                          currentPage === totalPages
-                            ? "text-gray-400 cursor-not-allowed"
-                            : "text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
+              {filteredProductGroups.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-400 text-6xl mb-4">📦</div>
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Items Available</h3>
+                  <p className="text-gray-500">
+                    {selectedSubcategory 
+                      ? `No products found in ${selectedSubcategory} category.`
+                      : "No products available at the moment."
+                    }
+                  </p>
                 </div>
+              ) : (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                    {paginated.map((group, index) => (
+                      <div
+                        key={group.selected.id}
+                        className="product-card-animate transform transition-all duration-300 hover:scale-102"
+                        style={{ animationDelay: `${index * 50}ms` }}
+                      >
+                        <ProductCard productGroup={group} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {totalPages > 1 && (
+                    <div className="mt-10 pt-6 border-t border-gray-100">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="text-sm text-gray-600">
+                          Showing {startIndex + 1}-
+                          {Math.min(startIndex + productsPerPage, filteredProductGroups.length)} of{" "}
+                          {filteredProductGroups.length} products
+                        </div>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          <button
+                            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                            disabled={currentPage === 1}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                              currentPage === 1
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            Previous
+                          </button>
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) =>
+                            renderPaginationButton(page, currentPage === page)
+                          )}
+                          <button
+                            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                            disabled={currentPage === totalPages}
+                            className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                              currentPage === totalPages
+                                ? "text-gray-400 cursor-not-allowed"
+                                : "text-gray-700 hover:bg-gray-50 border border-gray-200 hover:border-gray-300"
+                            }`}
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
         </div>
 
         <style jsx>{`
+          .product-card-animate {
+            animation: fadeInUp 0.6s ease-out forwards;
+          }
+          
           @keyframes fadeInUp {
             from {
               opacity: 0;

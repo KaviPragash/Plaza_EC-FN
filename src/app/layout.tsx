@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/header/header";
 import Footer from "@/components/footer";
 import { CartProvider } from "@/contexts/CartContext";
+import { SubcategoryFilterProvider } from "@/contexts/SubcategoryFilterContext";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -20,14 +21,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         className={`min-h-screen flex flex-col ${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50`}
       >
         <CartProvider>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <div id="modal-root" /> 
-          <Footer />
+          <SubcategoryFilterProvider>
+            <Header />
+            <main className="flex-grow">{children}</main>
+            <div id="modal-root" /> 
+            <Footer />
+          </SubcategoryFilterProvider>
         </CartProvider>
       </body>
     </html>
   );
 }
-
-
