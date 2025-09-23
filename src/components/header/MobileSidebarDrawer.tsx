@@ -17,6 +17,11 @@ interface Subcategory {
   };
 }
 
+interface MobileSidebarDrawerProps {
+  onClose: () => void;
+  onSubcategorySelect?: (subcategoryName: string, subcategoryCode: string) => void;
+}
+
 const colorClasses = [
   { bg: "bg-gradient-to-r from-blue-500 to-blue-600", text: "text-blue-50", dot: "bg-blue-300", hover: "hover:from-blue-600 hover:to-blue-700" },
   { bg: "bg-gradient-to-r from-purple-500 to-purple-600", text: "text-purple-50", dot: "bg-purple-300", hover: "hover:from-purple-600 hover:to-purple-700" },
@@ -25,16 +30,20 @@ const colorClasses = [
   { bg: "bg-gradient-to-r from-yellow-500 to-yellow-600", text: "text-yellow-50", dot: "bg-yellow-300", hover: "hover:from-yellow-600 hover:to-yellow-700" }
 ];
 
-export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }) {
+export default function MobileSidebarDrawer({ onClose, onSubcategorySelect }: MobileSidebarDrawerProps) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [subcategoryCodeMap, setSubcategoryCodeMap] = useState<Record<string, string>>({});
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
   const [showAll, setShowAll] = useState<boolean>(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL || "https://plaza.verveautomation.com/api/auth";
+        console.log('=== MOBILE SIDEBAR DATA FETCHING ===');
+        console.log('API Base:', base);
+        
         const [catRes, subRes] = await Promise.all([
           fetch(`${base}/getallMCategory`),
           fetch(`${base}/getallSubCategory`)
@@ -43,10 +52,27 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
         const catJson = await catRes.json();
         const subJson = await subRes.json();
 
-        setCategories(catJson || []);
-        setSubcategories(subJson || []);
+        const catData: Category[] = Array.isArray(catJson) ? catJson : catJson.data || [];
+        const subData: Subcategory[] = Array.isArray(subJson) ? subJson : subJson.data || [];
+
+        console.log('Categories loaded:', catData.length);
+        console.log('Subcategories loaded:', subData.length);
+
+        setCategories(catData);
+        setSubcategories(subData);
+
+        // Create subcategory name to code mapping
+        const codeMap: Record<string, string> = {};
+        subData.forEach((sub) => {
+          if (sub.SCategory_name && sub.SCategory_code) {
+            codeMap[sub.SCategory_name] = sub.SCategory_code;
+          }
+        });
+        
+        console.log('Subcategory code map created:', codeMap);
+        setSubcategoryCodeMap(codeMap);
       } catch (err) {
-        console.error("API Error:", err);
+        console.error("Mobile Sidebar API Error:", err);
       }
     }
 
@@ -54,10 +80,39 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
   }, []);
 
   const toggleCategory = (index: number) => {
+    console.log('=== CATEGORY TOGGLE ===');
+    console.log('Toggling category index:', index);
+    console.log('Current active index:', activeIndex);
     setActiveIndex(activeIndex === index ? null : index);
   };
 
+  const handleSubcategoryClick = (subcategoryName: string) => {
+    console.log('=== MOBILE SUBCATEGORY CLICK ===');
+    console.log('Clicked subcategory:', subcategoryName);
+    console.log('Available codes map:', subcategoryCodeMap);
+    console.log('onSubcategorySelect function exists:', !!onSubcategorySelect);
+    console.log('onSubcategorySelect function type:', typeof onSubcategorySelect);
+    
+    const subcategoryCode = subcategoryCodeMap[subcategoryName];
+    console.log('Found code for', subcategoryName, ':', subcategoryCode);
+    
+    if (subcategoryCode && onSubcategorySelect) {
+      console.log('✅ Calling onSubcategorySelect with:', subcategoryName, subcategoryCode);
+      onSubcategorySelect(subcategoryName, subcategoryCode);
+      console.log('✅ Closing drawer');
+      onClose();
+    } else {
+      console.log('❌ ERROR: Missing code or callback function');
+      console.log('- subcategoryCode:', subcategoryCode);
+      console.log('- onSubcategorySelect:', onSubcategorySelect);
+    }
+  };
+
   const visibleCategories = showAll ? categories : categories.slice(0, 7);
+
+  console.log('=== MOBILE SIDEBAR RENDER ===');
+  console.log('Visible categories:', visibleCategories.length);
+  console.log('Active index:', activeIndex);
 
   return (
     <div className="fixed inset-0 z-50 flex md:hidden">
@@ -112,7 +167,13 @@ export default function MobileSidebarDrawer({ onClose }: { onClose: () => void }
                             <ul className="space-y-1">
                               {catSub.map((sub) => (
                                 <li key={sub.SCategory_code}>
-                                  <button className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-200 flex items-center gap-3 text-sm font-medium group/item hover:shadow-sm">
+                                  <button 
+                                    onClick={() => {
+                                      console.log('Subcategory button clicked:', sub.SCategory_name);
+                                      handleSubcategoryClick(sub.SCategory_name);
+                                    }}
+                                    className="w-full text-left px-4 py-3 rounded-xl hover:bg-gray-50 text-gray-700 hover:text-gray-900 transition-all duration-200 flex items-center gap-3 text-sm font-medium group/item hover:shadow-sm"
+                                  >
                                     <span className={`w-2.5 h-2.5 rounded-full ${color.dot} opacity-70 group-hover/item:opacity-100 transition-opacity duration-200 shadow-sm`} />
                                     <span className="tracking-wide">{sub.SCategory_name}</span>
                                   </button>

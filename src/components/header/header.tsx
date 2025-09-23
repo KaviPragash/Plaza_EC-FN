@@ -6,11 +6,13 @@ import LoginButton from "./loginButton";
 import MobileSidebarDrawer from "./MobileSidebarDrawer";
 import CartSidebar from "../cart/CartSidebar";
 import { useCart } from "@/contexts/CartContext";
+import { useSubcategoryFilter } from "@/contexts/SubcategoryFilterContext";
 
 export default function Header() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const { cartItems, cartIconRefDesktop, cartIconRefMobile } = useCart();
+  const { setFilter } = useSubcategoryFilter();
 
   return (
     <>
@@ -78,7 +80,10 @@ export default function Header() {
 
       {/* Mobile Sidebar */}
       {sidebarOpen && (
-        <MobileSidebarDrawer onClose={() => setSidebarOpen(false)} />
+        <MobileSidebarDrawer 
+          onClose={() => setSidebarOpen(false)} 
+          onSubcategorySelect={setFilter}
+        />
       )}
 
       {/* Cart Sidebar */}

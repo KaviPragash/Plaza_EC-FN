@@ -12,6 +12,7 @@ type Product = {
   image: string;
   stockStatus: string;
   stockQuantity: number;
+  subcategoryCode?: string;
 };
 
 type ApiProduct = {
@@ -38,8 +39,14 @@ type ProductGroup = {
   variants: Product[];
 };
 
-export default function MobileProductGrid() {
-  const [productGroups, setProductGroups] = useState<ProductGroup[]>([]);
+interface MobileProductGridProps {
+  selectedSubcategory?: string | null;
+  selectedSubcategoryCode?: string | null;
+}
+
+export default function MobileProductGrid({ selectedSubcategory, selectedSubcategoryCode }: MobileProductGridProps) {
+  const [allProductGroups, setAllProductGroups] = useState<ProductGroup[]>([]);
+  const [filteredProductGroups, setFilteredProductGroups] = useState<ProductGroup[]>([]);
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
@@ -66,6 +73,7 @@ export default function MobileProductGrid() {
             image: item.image_url || "/assets/images/default.jpg",
             stockStatus: item.total_quantity > 0 ? "In Stock" : "Out of Stock",
             stockQuantity: item.total_quantity,
+            subcategoryCode: item.sCategory_code,
           }));
 
           return {
@@ -74,7 +82,8 @@ export default function MobileProductGrid() {
           };
         });
 
-        setProductGroups(formattedGroups);
+        setAllProductGroups(formattedGroups);
+        setFilteredProductGroups(formattedGroups);
       } catch (err) {
         console.error("Failed to fetch mobile products:", err);
       }
@@ -83,25 +92,64 @@ export default function MobileProductGrid() {
     fetchProducts();
   }, []);
 
-  const visibleGroups = showAll ? productGroups : productGroups.slice(0, 12);
+  // Filter products when selectedSubcategoryCode changes
+  useEffect(() => {
+    if (!selectedSubcategoryCode) {
+      setFilteredProductGroups(allProductGroups);
+    } else {
+      const filtered = allProductGroups.filter(group => 
+        group.selected.subcategoryCode === selectedSubcategoryCode
+      );
+      setFilteredProductGroups(filtered);
+    }
+    setShowAll(false); // Reset show all when filtering
+  }, [selectedSubcategoryCode, allProductGroups]);
+
+  const visibleGroups = showAll ? filteredProductGroups : filteredProductGroups.slice(0, 12);
 
   return (
     <section className="block md:hidden px-2 py-4">
-      <div className="grid grid-cols-3 gap-2">
-        {visibleGroups.map((group) => (
-          <MobileProductCard key={group.selected.id} productGroup={group} />
-        ))}
-      </div>
-
-      {!showAll && productGroups.length > 12 && (
-        <div className="flex justify-center mt-4">
-          <button
-            onClick={() => setShowAll(true)}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Read More
-          </button>
+      {/* Filter indicator for mobile */}
+      {selectedSubcategory && (
+        <div className="mb-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p className="text-blue-700 text-sm">
+              <span className="font-medium">Filtered by:</span> {selectedSubcategory}
+            </p>
+          </div>
         </div>
+      )}
+
+      {filteredProductGroups.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 text-4xl mb-4">📦</div>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">No Items Available</h3>
+          <p className="text-gray-500 text-sm">
+            {selectedSubcategory 
+              ? `No products found in ${selectedSubcategory} category.`
+              : "No products available at the moment."
+            }
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-2">
+            {visibleGroups.map((group) => (
+              <MobileProductCard key={group.selected.id} productGroup={group} />
+            ))}
+          </div>
+
+          {!showAll && filteredProductGroups.length > 12 && (
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={() => setShowAll(true)}
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors duration-200"
+              >
+                Show More ({filteredProductGroups.length - 12} more items)
+              </button>
+            </div>
+          )}
+        </>
       )}
     </section>
   );
