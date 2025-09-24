@@ -10,16 +10,16 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Plaza - Online Shopping Platform",
-  description: "Plaza is your one-stop online store for a wide range of products. Shop easily, track orders, and enjoy a seamless online shopping experience.",
+  title: "PlazaOne360",
+  description: "PlazaOne360 E-Commerce Site",
   openGraph: {
-    title: "Plaza - Online Shopping Platform",
-    description: "Shop for a variety of products online with Plaza. Enjoy seamless browsing, easy ordering, and fast delivery.",
+    title: "PlazaOne360",
+    description: "PlazaOne360 E-Commerce Site.",
     url: "https://plazaone360.com/",
     siteName: "Plaza",
     images: [
       {
-        url: "/assets/images/og-image.png",
+        url: "/assets/images/og-image.png", // Your Image 3 from earlier
         width: 1200,
         height: 630,
       },
@@ -29,13 +29,25 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Plaza - Online Shopping Platform",
-    description: "Shop online for a variety of products with Plaza. Hassle-free orders and fast delivery.",
+    title: "PlazaOne360",
+    description: "PlazaOne360 E-Commerce Site",
     images: ["/assets/images/og-image.png"],
   },
   icons: {
-    icon: "/assets/images/favicon.ico",
+    icon: [
+      { url: "/assets/images/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/assets/images/favicon-16x16.png", sizes: "16x16", type: "image/png" }
+    ],
+    apple: "/assets/images/apple-touch-icon.png",
+    other: [
+      {
+        rel: "android-chrome",
+        sizes: "192x192",
+        url: "/assets/images/android-chrome-192x192.png",
+      },
+    ],
   },
+  manifest: "/assets/images/site.webmanifest",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
