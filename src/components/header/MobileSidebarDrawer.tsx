@@ -40,7 +40,7 @@ export default function MobileSidebarDrawer({ onClose, onSubcategorySelect }: Mo
   useEffect(() => {
     async function fetchData() {
       try {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL || "https://plaza.verveautomation.com/api/auth";
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL;
         console.log('=== MOBILE SIDEBAR DATA FETCHING ===');
         console.log('API Base:', base);
         

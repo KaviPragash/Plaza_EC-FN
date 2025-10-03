@@ -38,10 +38,10 @@ export default function LoginForm({
     }
 
     setLoading(true);
-    setErrors({}); 
+    setErrors({});
 
     try {
-      const res = await fetch("https://plaza.verveautomation.com/api/auth/login", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"

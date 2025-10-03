@@ -24,16 +24,16 @@ export default function LoginButton() {
 
   const getInitials = (name: string) => {
     if (!name) return "U";
-    
+
     if (name.includes("@")) {
       return name.charAt(0).toUpperCase();
     }
-    
+
     const words = name.trim().split(" ");
     if (words.length === 1) {
       return words[0].charAt(0).toUpperCase();
     }
-    
+
     return (words[0].charAt(0) + words[1].charAt(0)).toUpperCase();
   };
 
@@ -45,11 +45,11 @@ export default function LoginButton() {
         return;
       }
 
-      const res = await fetch("https://plaza.verveautomation.com/api/auth/verify", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/verify`, {
         headers: {
           "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       if (res.ok) {
@@ -101,11 +101,10 @@ export default function LoginButton() {
       <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen((prev) => !prev)}
-          className={`relative p-2 rounded-full transition-all duration-300 ${
-            user 
-              ? "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105" 
+          className={`relative p-2 rounded-full transition-all duration-300 ${user
+              ? "bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transform hover:scale-105"
               : "hover:bg-blue-100 text-gray-700"
-          }`}
+            }`}
         >
           {user ? (
             <div className="w-6 h-6 flex items-center justify-center">
@@ -116,7 +115,7 @@ export default function LoginButton() {
           ) : (
             <User size={22} />
           )}
-          
+
           {user && (
             <div className="absolute inset-0 rounded-full bg-white/20 animate-pulse"></div>
           )}

@@ -55,7 +55,8 @@ export default function ProductGrid({ selectedSubcategory, selectedSubcategoryCo
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("https://plaza.verveautomation.com/api/auth/GetAllProducts");
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const res = await fetch(`${baseUrl}/GetAllProducts`);
         const data = await res.json();
 
         const grouped = new Map<string, ApiProduct[]>();
@@ -96,7 +97,6 @@ export default function ProductGrid({ selectedSubcategory, selectedSubcategoryCo
     fetchProducts();
   }, []);
 
-  // Filter products when selectedSubcategoryCode changes
   useEffect(() => {
     if (!selectedSubcategoryCode) {
       setFilteredProductGroups(allProductGroups);
@@ -106,7 +106,7 @@ export default function ProductGrid({ selectedSubcategory, selectedSubcategoryCo
       );
       setFilteredProductGroups(filtered);
     }
-    setCurrentPage(1); // Reset to first page when filtering
+    setCurrentPage(1);
   }, [selectedSubcategoryCode, allProductGroups]);
 
   const startIndex = (currentPage - 1) * productsPerPage;

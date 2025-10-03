@@ -9,6 +9,8 @@ interface UserData {
   name?: string;
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
+
 export default function RegisterForm({
   onClose,
   switchToLogin,
@@ -48,10 +50,10 @@ export default function RegisterForm({
     }
 
     setLoading(true);
-    setErrors({}); 
+    setErrors({});
 
     try {
-      const res = await fetch("https://plaza.verveautomation.com/api/auth/register", {
+      const res = await fetch(`${API_BASE}/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -72,7 +74,7 @@ export default function RegisterForm({
           } else if (data.message.toLowerCase().includes('password')) {
             setErrors({ password: data.message });
           } else {
-            setErrors({ email: data.message }); 
+            setErrors({ email: data.message });
           }
         } else {
           setErrors({ email: "Registration failed. Please try again." });
@@ -90,7 +92,7 @@ export default function RegisterForm({
           email: data.user?.email || form.email,
           name: data.user?.name || data.user?.full_name || form.name
         };
-        
+
         onRegisterSuccess(userData);
       } else {
         await autoLogin();
@@ -106,7 +108,7 @@ export default function RegisterForm({
 
   const autoLogin = async () => {
     try {
-      const loginRes = await fetch("https://plaza.verveautomation.com/api/auth/login", {
+      const loginRes = await fetch(`${API_BASE}/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -129,7 +131,7 @@ export default function RegisterForm({
           email: loginData.user?.email || form.email,
           name: loginData.user?.name || loginData.user?.full_name || form.name
         };
-        
+
         onRegisterSuccess(userData);
       } else {
         onClose();

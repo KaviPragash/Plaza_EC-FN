@@ -104,8 +104,7 @@ export default function CategorySidebar() {
     async function fetchData() {
       try {
         const base =
-          process.env.NEXT_PUBLIC_API_BASE_URL ||
-          "https://plaza.verveautomation.com/api/auth";
+          process.env.NEXT_PUBLIC_API_BASE_URL;
         const [catRes, subRes] = await Promise.all([
           fetch(`${base}/getallMCategory`),
           fetch(`${base}/getallSubCategory`),
