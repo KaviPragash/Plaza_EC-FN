@@ -52,7 +52,8 @@ export default function MobileProductGrid({ selectedSubcategory, selectedSubcate
   useEffect(() => {
     async function fetchProducts() {
       try {
-        const res = await fetch("https://plaza.verveautomation.com/api/auth/GetAllProducts");
+        const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+        const res = await fetch(`${baseUrl}/GetAllProducts`);
         const data = await res.json();
 
         const grouped = new Map<string, ApiProduct[]>();
@@ -92,7 +93,6 @@ export default function MobileProductGrid({ selectedSubcategory, selectedSubcate
     fetchProducts();
   }, []);
 
-  // Filter products when selectedSubcategoryCode changes
   useEffect(() => {
     if (!selectedSubcategoryCode) {
       setFilteredProductGroups(allProductGroups);
@@ -102,14 +102,13 @@ export default function MobileProductGrid({ selectedSubcategory, selectedSubcate
       );
       setFilteredProductGroups(filtered);
     }
-    setShowAll(false); // Reset show all when filtering
+    setShowAll(false);
   }, [selectedSubcategoryCode, allProductGroups]);
 
   const visibleGroups = showAll ? filteredProductGroups : filteredProductGroups.slice(0, 12);
 
   return (
     <section className="block md:hidden px-2 py-4">
-      {/* Filter indicator for mobile */}
       {selectedSubcategory && (
         <div className="mb-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
