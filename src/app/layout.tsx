@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     siteName: "Plaza",
     images: [
       {
-        url: "/assets/images/og-image.png", // Your Image 3 from earlier
+        url: "/assets/images/og-image.png", 
         width: 1200,
         height: 630,
       },
